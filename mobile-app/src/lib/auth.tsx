@@ -21,6 +21,7 @@ interface AuthCtx {
   esOperador: boolean;
   esCiudadano: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginConGoogle: (idToken: string) => Promise<void>;
   registrar: (data: Record<string, unknown>) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -54,6 +55,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await guardar(data.data.token, data.data.usuario);
   }, []);
 
+  const loginConGoogle = useCallback(async (idToken: string) => {
+    const { data } = await api.post('/auth/google', { idToken });
+    if (!data.success) throw new Error(data.message || 'Error con Google');
+    await guardar(data.data.token, data.data.usuario);
+  }, []);
+
   const registrar = useCallback(async (datos: Record<string, unknown>) => {
     const { data } = await api.post('/auth/register', datos);
     if (!data.success) throw new Error(data.message || 'Error de registro');
@@ -74,6 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     esOperador: rol === 'OPERADOR_CAMION',
     esCiudadano: rol === 'CIUDADANO',
     login,
+    loginConGoogle,
     registrar,
     logout,
   };

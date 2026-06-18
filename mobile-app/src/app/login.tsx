@@ -1,20 +1,43 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator,
   KeyboardAvoidingView, Platform, ScrollView, Alert,
 } from 'react-native';
-import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
+import { MaterialCommunityIcons, Feather, AntDesign } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
 import { useAuth } from '../lib/auth';
 import { colors, radius, spacing } from '../lib/theme';
 
+WebBrowser.maybeCompleteAuthSession();
+
+const GOOGLE_WEB = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB;
+const GOOGLE_ANDROID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_ANDROID;
+
 export default function Login() {
-  const { login } = useAuth();
+  const { login, loginConGoogle } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [ver, setVer] = useState(false);
   const [cargando, setCargando] = useState(false);
+
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+    androidClientId: GOOGLE_ANDROID,
+    webClientId: GOOGLE_WEB,
+  });
+
+  useEffect(() => {
+    if (response?.type === 'success') {
+      const idToken = response.params?.id_token;
+      if (idToken) {
+        loginConGoogle(idToken)
+          .then(() => router.replace('/'))
+          .catch((e) => Alert.alert('Google', e?.response?.data?.message || 'No se pudo iniciar con Google'));
+      }
+    }
+  }, [response]);
 
   const entrar = async () => {
     if (!email || !password) return Alert.alert('Faltan datos', 'Ingresa tu correo y contraseña');
@@ -27,6 +50,14 @@ export default function Login() {
     } finally {
       setCargando(false);
     }
+  };
+
+  const entrarGoogle = () => {
+    if (!GOOGLE_WEB && !GOOGLE_ANDROID) {
+      Alert.alert('Google', 'El inicio con Google aún no está configurado en esta versión.');
+      return;
+    }
+    promptAsync();
   };
 
   return (
@@ -71,8 +102,21 @@ export default function Login() {
             </TouchableOpacity>
           </View>
 
+          <TouchableOpacity onPress={() => router.push('/forgot')} style={s.olvido} hitSlop={8}>
+            <Text style={s.olvidoTxt}>¿Olvidaste tu contraseña?</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity style={s.btn} onPress={entrar} disabled={cargando} activeOpacity={0.85}>
             {cargando ? <ActivityIndicator color={colors.white} /> : <Text style={s.btnTxt}>Iniciar sesión</Text>}
+          </TouchableOpacity>
+
+          <View style={s.divisor}>
+            <View style={s.linea} /><Text style={s.o}>o</Text><View style={s.linea} />
+          </View>
+
+          <TouchableOpacity style={s.google} onPress={entrarGoogle} disabled={!request && (!!GOOGLE_WEB || !!GOOGLE_ANDROID)} activeOpacity={0.85}>
+            <AntDesign name="google" size={18} color="#EA4335" />
+            <Text style={s.googleTxt}>Continuar con Google</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={s.link} onPress={() => router.push('/register')}>
@@ -88,7 +132,7 @@ export default function Login() {
 
 const s = StyleSheet.create({
   cont: { flexGrow: 1, justifyContent: 'center', padding: spacing.xl },
-  logoWrap: { alignItems: 'center', marginBottom: spacing.xxl },
+  logoWrap: { alignItems: 'center', marginBottom: spacing.xl },
   logoBadge: {
     width: 84, height: 84, borderRadius: radius.xl, backgroundColor: colors.bgElevated,
     borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.md,
@@ -105,12 +149,19 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: spacing.md, height: 50,
   },
   input: { flex: 1, color: colors.textPrimary, fontSize: 16 },
-  btn: {
-    backgroundColor: colors.primaryDark, borderRadius: radius.md, height: 52, alignItems: 'center',
-    justifyContent: 'center', marginTop: spacing.lg,
-  },
+  olvido: { alignSelf: 'flex-end', marginTop: spacing.sm },
+  olvidoTxt: { color: colors.primary, fontSize: 13 },
+  btn: { backgroundColor: colors.primaryDark, borderRadius: radius.md, height: 52, alignItems: 'center', justifyContent: 'center', marginTop: spacing.md },
   btnTxt: { color: colors.white, fontSize: 16, fontWeight: '700' },
+  divisor: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginVertical: spacing.md },
+  linea: { flex: 1, height: 1, backgroundColor: colors.border },
+  o: { color: colors.textMuted, fontSize: 13 },
+  google: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm,
+    backgroundColor: colors.white, borderRadius: radius.md, height: 50,
+  },
+  googleTxt: { color: '#1f1f1f', fontSize: 15, fontWeight: '600' },
   link: { alignItems: 'center', marginTop: spacing.lg },
   linkTxt: { color: colors.textSecondary, fontSize: 14 },
-  pie: { color: colors.textMuted, fontSize: 12, textAlign: 'center', marginTop: spacing.xxl },
+  pie: { color: colors.textMuted, fontSize: 12, textAlign: 'center', marginTop: spacing.xl },
 });

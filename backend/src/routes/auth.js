@@ -1,5 +1,7 @@
 import { Router } from 'express';
+import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
+import { OAuth2Client } from 'google-auth-library';
 import Usuario from '../models/Usuario.js';
 import Zona from '../models/Zona.js';
 import Alerta from '../models/Alerta.js';
@@ -7,6 +9,7 @@ import { firmarToken, autenticar } from '../middleware/auth.js';
 import { ok, fail } from '../utils.js';
 
 const router = Router();
+const googleClient = new OAuth2Client();
 
 function zonaDesdePunto(lat, lng) {
   if (typeof lat !== 'number' || typeof lng !== 'number') return Promise.resolve(null);
@@ -98,6 +101,53 @@ router.get('/me', autenticar, async (req, res) => {
   const usuario = await Usuario.findById(req.usuario.id).populate('zona');
   if (!usuario) return fail(res, 'Usuario no encontrado', 404);
   return ok(res, perfil(usuario));
+});
+
+// POST /api/auth/recuperar  — recuperación simple por correo + DNI
+router.post('/recuperar', async (req, res) => {
+  try {
+    const { email, dni, password } = req.body;
+    if (!email || !dni || !password) return fail(res, 'Completa correo, DNI y nueva contraseña');
+    if (String(password).length < 6) return fail(res, 'La contraseña debe tener al menos 6 caracteres');
+    const usuario = await Usuario.findOne({ email: String(email).toLowerCase(), dni: String(dni).trim() });
+    if (!usuario) return fail(res, 'No se encontró un usuario con ese correo y DNI', 404);
+    usuario.password = await bcrypt.hash(password, 10);
+    await usuario.save();
+    return ok(res, null, 'Contraseña actualizada. Ya puedes iniciar sesión.');
+  } catch (e) {
+    console.error('recuperar', e);
+    return fail(res, 'Error al recuperar la contraseña', 500);
+  }
+});
+
+// POST /api/auth/google  — inicio de sesión con Google (verifica idToken)
+router.post('/google', async (req, res) => {
+  try {
+    const { idToken } = req.body;
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    if (!idToken) return fail(res, 'Falta el idToken de Google');
+    if (!clientId) return fail(res, 'El inicio con Google no está configurado', 503);
+
+    const ticket = await googleClient.verifyIdToken({ idToken, audience: clientId });
+    const p = ticket.getPayload();
+    const email = String(p.email).toLowerCase();
+
+    let usuario = await Usuario.findOne({ email }).populate('zona');
+    if (!usuario) {
+      usuario = await Usuario.create({
+        nombre: p.name || email,
+        email,
+        password: await bcrypt.hash(crypto.randomUUID(), 10),
+        rol: 'CIUDADANO',
+      });
+      await usuario.populate('zona');
+    }
+    const token = firmarToken(usuario);
+    return ok(res, { token, tipo: 'Bearer', usuario: perfil(usuario) }, 'Inicio con Google exitoso');
+  } catch (e) {
+    console.error('google', e);
+    return fail(res, 'No se pudo validar la cuenta de Google', 401);
+  }
 });
 
 export default router;
