@@ -206,3 +206,36 @@ El admin **controla todo** desde la web (centralizado y completo):
 - **Predicción de generación de residuos** por zona (planificación).
 - **Detección de puntos críticos** (basurales recurrentes) con alerta al admin.
 - **Asistente por voz** para accesibilidad.
+
+---
+
+## 15. Alcance realista de la Entrega 3 (decisión del equipo)
+
+Para una entrega **sólida y defendible**, nos enfocamos en lo viable y vistoso. Mejor pocas cosas bien hechas.
+
+### ✅ SÍ se hace (alcance comprometido)
+| Función | Dificultad |
+|---|---|
+| Interfaz de **Operador** + **colores por rol** | 🟢 Fácil |
+| **Horarios** por zona + **línea de ruta** en el mapa | 🟢 Fácil |
+| **Editar perfil** (todos los usuarios) | 🟢 Fácil |
+| **Reportes + estadísticas + ranking** de distritos | 🟡 Medio |
+| **WhatsApp soporte** + **chatbot por botones** | 🟢 Fácil |
+| **Notificaciones push** del camión (próximo/llegó/pasó) | 🟡 Medio (requiere celular real) |
+| **IA con Gemini:** chatbot de segregación + **clasificar residuo por foto** | 🟡 Medio (API gratuita) |
+
+### 🤖 IA elegida: **Google Gemini API** (gratis, multimodal)
+- Una sola clave cubre **chatbot** (texto) y **clasificación por foto** (imagen).
+- La clave va en el **backend** (`GEMINI_API_KEY`), nunca en la app.
+- Endpoint: `POST /api/ia/segregar` (recibe pregunta o foto → responde categoría/consejo).
+- Obtener clave gratis: https://aistudio.google.com
+
+### ⏭️ Trabajo futuro (NO en esta entrega — muy complejo)
+- Modelo de **visión entrenado** propio (usamos Gemini en su lugar).
+- **Predicción ML** de generación de residuos (faltan datos históricos).
+- **Optimización de rutas** (algoritmo).
+- **Sensores IoT** de llenado de contenedores (requiere hardware).
+- **Multi-municipalidad** (rediseño multi-tenant).
+- **2FA** y verificación avanzada.
+
+> Estas quedan documentadas como **mejoras a futuro**: suman valor en el informe sin arriesgar la entrega.
