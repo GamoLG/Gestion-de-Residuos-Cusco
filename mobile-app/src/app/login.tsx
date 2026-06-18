@@ -1,43 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator,
   KeyboardAvoidingView, Platform, ScrollView, Alert,
 } from 'react-native';
 import { MaterialCommunityIcons, Feather, AntDesign } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
 import { useAuth } from '../lib/auth';
 import { colors, radius, spacing } from '../lib/theme';
 
-WebBrowser.maybeCompleteAuthSession();
-
-const GOOGLE_WEB = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB;
-const GOOGLE_ANDROID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_ANDROID;
-
 export default function Login() {
-  const { login, loginConGoogle } = useAuth();
+  const { login } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [ver, setVer] = useState(false);
   const [cargando, setCargando] = useState(false);
-
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    androidClientId: GOOGLE_ANDROID,
-    webClientId: GOOGLE_WEB,
-  });
-
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const idToken = response.params?.id_token;
-      if (idToken) {
-        loginConGoogle(idToken)
-          .then(() => router.replace('/'))
-          .catch((e) => Alert.alert('Google', e?.response?.data?.message || 'No se pudo iniciar con Google'));
-      }
-    }
-  }, [response]);
 
   const entrar = async () => {
     if (!email || !password) return Alert.alert('Faltan datos', 'Ingresa tu correo y contraseña');
@@ -53,11 +30,7 @@ export default function Login() {
   };
 
   const entrarGoogle = () => {
-    if (!GOOGLE_WEB && !GOOGLE_ANDROID) {
-      Alert.alert('Google', 'El inicio con Google aún no está configurado en esta versión.');
-      return;
-    }
-    promptAsync();
+    Alert.alert('Próximamente', 'El inicio de sesión con Google estará disponible en una próxima actualización.');
   };
 
   return (
@@ -114,7 +87,7 @@ export default function Login() {
             <View style={s.linea} /><Text style={s.o}>o</Text><View style={s.linea} />
           </View>
 
-          <TouchableOpacity style={s.google} onPress={entrarGoogle} disabled={!request && (!!GOOGLE_WEB || !!GOOGLE_ANDROID)} activeOpacity={0.85}>
+          <TouchableOpacity style={s.google} onPress={entrarGoogle} activeOpacity={0.85}>
             <AntDesign name="google" size={18} color="#EA4335" />
             <Text style={s.googleTxt}>Continuar con Google</Text>
           </TouchableOpacity>
