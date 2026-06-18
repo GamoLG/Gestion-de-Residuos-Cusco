@@ -1,0 +1,354 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{tabularx}
+\usepackage{mdframed}
+\usepackage{float}
+
+\definecolor{azuloscuro}{RGB}{44,82,130}
+\definecolor{azulclaro}{RGB}{235,244,255}
+\definecolor{grisclaro}{RGB}{247,247,247}
+\definecolor{verdeclaro}{RGB}{240,255,244}
+\definecolor{rojoclaro}{RGB}{255,245,245}
+\definecolor{azulinfo}{RGB}{235,248,255}
+
+\geometry{top=2.5cm,bottom=2.5cm,left=3cm,right=3cm}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small IF614 -- Ingeniería de Software I}
+\fancyhead[R]{\small Residuos Cusco -- Entrega 2}
+\fancyfoot[C]{\thepage}
+
+\hypersetup{colorlinks=true, linkcolor=azuloscuro, urlcolor=azuloscuro}
+
+\newcommand{\theadcell}[1]{%
+  \cellcolor{azuloscuro}\textcolor{white}{\textbf{\small #1}}}
+
+\begin{document}
+
+% =================================================================
+% CARÁTULA
+% =================================================================
+\thispagestyle{empty}
+\begin{center}
+    \Large \textbf{UNIVERSIDAD NACIONAL DE SAN ANTONIO ABAD DEL CUSCO}\\[0.5cm]
+    \large \textbf{FACULTAD DE INGENIERÍA ELÉCTRICA, ELECTRÓNICA, INFORMÁTICA Y MECÁNICA}\\[0.5cm]
+    \large \textbf{ESCUELA PROFESIONAL DE INGENIERÍA INFORMÁTICA Y DE SISTEMAS}\\[0.3cm]
+    \noindent\rule{\textwidth}{1.5pt}\\[0.5cm]
+    \begin{minipage}{0.45\textwidth}
+        \begin{center}
+            \includegraphics[width=0.7\textwidth]{LOGOUNSAAC.png}
+        \end{center}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \begin{center}
+            \includegraphics[width=0.7\textwidth]{LOGOCARRERA.png}
+        \end{center}
+    \end{minipage}\\[0.3cm]
+    \noindent\rule{\textwidth}{0.5pt}\\[0.2cm]
+    \Huge \textbf{SISTEMA INTELIGENTE DE RECOLECCIÓN}\\[0.1cm]
+    \Huge \textbf{DE RESIDUOS SÓLIDOS SEGREGADOS}\\[0.2cm]
+    \Large \textbf{Entrega N.° 2 -- Documentación del Proyecto}\\[0.2cm]
+    \large \textbf{Curso:} IF614 -- Ingeniería de Software I\\[0.3cm]
+    \large \textbf{Docente(s):} Gamarra Salas, Jisbaj; Cosio Loaiza, Stephan Jhoel; Ticona Felix, Luz Indira\\[0.2cm]
+    \large \textbf{Integrantes:}\\[0.4cm]
+    \renewcommand{\arraystretch}{1}
+    \begin{tabular}{|p{7cm}|p{2.5cm}|p{3.5cm}|}
+    \hline
+    \rowcolor{azuloscuro}
+    \textcolor{white}{\textbf{Apellidos y Nombres}} &
+    \textcolor{white}{\textbf{Código}} &
+    \textcolor{white}{\textbf{Rol}} \\
+    \hline
+    Luicho Quispe, Jhoel Alex        & 224871 & Product Owner \\[0.2cm]
+    \hline
+    Luna Ccapa, Carlos Willian       & 210178 & Developer \\[0.2cm]
+    \hline
+    Puma Condori, Richard Braulio    & 161809 & Developer \\[0.2cm]
+    \hline
+    Huaracallo Arenas, Lino Zeynt    & 204798 & Scrum Master \\[0.2cm]
+    \hline
+    \end{tabular}\\[0.5cm]
+    \large Metodología: SCRUM \quad $|$ \quad Atributo del graduado: AG-C01\\[0.3cm]
+    \large CUSCO -- PERÚ\\[0.2cm]
+    \large 2026
+\end{center}
+\newpage
+
+\tableofcontents
+\newpage
+
+% =================================================================
+% CAPÍTULO I
+% =================================================================
+\section{Datos Generales del Proyecto}
+
+\subsection{Título del proyecto}
+Diseño e Implementación de un Sistema Inteligente de Recolección de Residuos Sólidos Segregados para la Gestión Ambiental Urbana en la ciudad del Cusco.
+
+\subsection{Objetivo general y específicos}
+\textbf{Objetivo general:} diseñar e implementar un sistema inteligente de gestión de residuos sólidos segregados que optimice la recolección, mejore la comunicación con los ciudadanos y genere información estratégica para la toma de decisiones, aplicando la metodología ágil SCRUM.
+
+\textbf{Objetivos específicos:}
+\begin{enumerate}[leftmargin=*]
+    \item Desarrollar el módulo de gestión de usuarios y zonas con registro de ciudadanos y asignación geográfica (detección por GPS).
+    \item Implementar un catálogo de tipos de residuos con guía de segregación (orgánico, reciclable, no reciclable, peligroso).
+    \item Construir el monitoreo de rutas con seguimiento de la ubicación de los camiones.
+    \item Ofrecer una aplicación móvil para consultar rutas y reportar incidencias con geolocalización.
+    \item Proveer un sistema de alertas y un módulo de reportes para la municipalidad.
+\end{enumerate}
+
+\subsection{Alcance del sistema}
+El sistema permite a la municipalidad y a los ciudadanos del Cusco gestionar el proceso de recolección de residuos sólidos segregados: administración de usuarios y zonas, catálogo de residuos, monitoreo de rutas, aplicación móvil ciudadana, sistema de alertas y módulo de reportes. \textit{Fuera de alcance:} hardware IoT en contenedores, pasarelas de pago e integración con sistemas tributarios.
+
+\subsection{Justificación del proyecto}
+La gestión de residuos en el Cusco presenta rutas no optimizadas, escasa comunicación con la población y baja cultura de segregación, lo que genera acumulación de residuos y afecta la salubridad y la sostenibilidad ambiental. Una solución digital con monitoreo, comunicación ciudadana y analítica contribuye al desarrollo sostenible y a una gestión municipal más eficiente y transparente.
+
+\subsection{Tecnologías utilizadas}
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\theadcell{Capa} & \theadcell{Tecnología} \\
+\hline
+Backend / API & Node.js 20 + Express \\
+\hline
+Base de datos & MongoDB (MongoDB Atlas) + Mongoose \\
+\hline
+Autenticación & JWT (jsonwebtoken) + bcryptjs \\
+\hline
+Aplicación móvil & Expo SDK 54 + React Native + expo-router (TypeScript) \\
+\hline
+Dashboard web & HTML + JavaScript (servido por el backend) \\
+\hline
+Mapas / GPS & OpenStreetMap (Leaflet) + expo-location \\
+\hline
+Integraciones & API RENIEC (apisperu) para autocompletar por DNI \\
+\hline
+Despliegue & Render (backend + web) · APK (Android) \\
+\hline
+Gestión / colaboración & Git · GitHub \\
+\hline
+\end{tabularx}
+\end{table}
+
+\subsection{Roles del equipo Scrum}
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{|l|l|X|}
+\hline
+\theadcell{Rol} & \theadcell{Integrante} & \theadcell{Funciones} \\
+\hline
+Scrum Master & Huaracallo Arenas, Lino Zeynt (204798) & Facilita el proceso, remueve impedimentos, asegura las ceremonias Scrum. \\
+\hline
+Product Owner & Luicho Quispe, Jhoel Alex (224871) & Prioriza el Product Backlog, define criterios de aceptación, representa al cliente. \\
+\hline
+Developer (Full Stack) & Luna Ccapa, Carlos Willian (210178) & Backend, app móvil y dashboard; pruebas. \\
+\hline
+Developer (Full Stack) & Puma Condori, Richard Braulio (161809) & Backend, app móvil y dashboard; pruebas. \\
+\hline
+Developer (Full Stack) & Luicho Quispe, Jhoel Alex (224871) & Integración y despliegue. \\
+\hline
+\end{tabularx}
+\end{table}
+\noindent\textit{Nota:} todos los integrantes participan como desarrolladores full stack; Lino Huaracallo asume además el rol de Scrum Master y Jhoel Luicho el de Product Owner.
+
+\subsection{Público objetivo del sistema}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Ciudadanos:} consultan rutas y horarios, reciben alertas, reportan incidencias y aprenden a segregar.
+    \item \textbf{Operadores municipales:} ejecutan rutas y reportan su ubicación.
+    \item \textbf{Administradores municipales:} gestionan zonas, rutas y usuarios, y consultan reportes.
+\end{itemize}
+
+% =================================================================
+% CAPÍTULO II
+% =================================================================
+\newpage
+\section{Método SCRUM Aplicado}
+
+\subsection{Product Backlog}
+\textbf{Requisitos Funcionales (priorizados):}
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\textwidth}{|l|X|c|c|}
+\hline
+\theadcell{ID} & \theadcell{Requisito funcional} & \theadcell{Prioridad} & \theadcell{Estado} \\
+\hline
+RF-01 & Registro de ciudadanos & Alta & Completo \\
+\hline
+RF-02 & Autenticación e inicio de sesión (JWT) & Alta & Completo \\
+\hline
+RF-03 & Gestión de zonas de recolección & Alta & Completo \\
+\hline
+RF-04 & Asignación de usuarios a zonas (detección GPS) & Media & Completo \\
+\hline
+RF-05 & Registro de tipos de residuos & Media & Completo \\
+\hline
+RF-06 & Clasificación de residuos por categoría & Alta & Completo \\
+\hline
+RF-07 & Visualización de rutas de recolección & Alta & Completo \\
+\hline
+RF-08 & Seguimiento de ubicación de camiones & Alta & Completo \\
+\hline
+RF-09 & Gestión de rutas por el administrador & Alta & Completo \\
+\hline
+RF-10 & Consulta de rutas/horarios (app móvil) & Alta & Completo \\
+\hline
+RF-11 & Reporte ciudadano de incidencias (GPS) & Alta & Completo \\
+\hline
+RF-12 & Notificación de cercanía del camión & Alta & Parcial \\
+\hline
+RF-13 & Alertas de retraso o incidencias & Media & Parcial \\
+\hline
+RF-14 & Reporte de residuos recolectados por zona & Alta & Completo \\
+\hline
+RF-15 & Reporte de cumplimiento de rutas & Media & Parcial \\
+\hline
+RF-16 & Reporte de participación ciudadana & Media & Parcial \\
+\hline
+\end{tabularx}
+\end{table}
+
+\textbf{Requisitos No Funcionales:}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{RNF-01 Seguridad:} contraseñas cifradas (bcrypt) y autenticación por token JWT.
+    \item \textbf{RNF-02 Disponibilidad:} backend y base de datos desplegados en la nube (24/7).
+    \item \textbf{RNF-03 Usabilidad:} interfaz simple y accesible.
+    \item \textbf{RNF-04 Rendimiento:} respuestas comunes en menos de 3 s.
+    \item \textbf{RNF-05 Portabilidad:} app instalable en Android (APK).
+    \item \textbf{RNF-06 Privacidad:} cumplimiento de la Ley N.° 29733 de Protección de Datos Personales.
+    \item \textbf{RNF-07 Mantenibilidad:} código modular y versionado en GitHub.
+\end{itemize}
+
+\subsection{Sprints realizados}
+Número total de sprints: \textbf{3} · Duración: \textbf{2 semanas} cada uno.
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{|c|X|X|}
+\hline
+\theadcell{Sprint} & \theadcell{Objetivo} & \theadcell{Entregables} \\
+\hline
+1 & Autenticación y gestión de usuarios/zonas & API de auth (JWT), modelos, zonas, detección por GPS \\
+\hline
+2 & Núcleo operativo y app móvil & Rutas + ubicación, residuos, incidencias, pantallas móviles \\
+\hline
+3 & Alertas, reportes, web y despliegue & Dashboard web, reportes, despliegue en la nube, APK \\
+\hline
+\end{tabularx}
+\end{table}
+
+\subsection{Herramientas de colaboración}
+GitHub (repositorio y ramas por historia de usuario), Render (despliegue del backend y la web), MongoDB Atlas (base de datos en la nube) y Expo/EAS (desarrollo y compilación de la app móvil).
+
+% =================================================================
+% CAPÍTULO III (BOSQUEJO)
+% =================================================================
+\newpage
+\section{Desarrollo por Sprint (Bosquejo)}
+
+\subsection{Sprint 1 — Autenticación y gestión de usuarios/zonas}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Objetivo:} habilitar registro/login seguro y la gestión de zonas con asignación por ubicación.
+    \item \textbf{Historias:} RF-01, RF-02, RF-03, RF-04 (completadas).
+    \item \textbf{Tareas:} modelos Usuario/Zona, hash de contraseñas, emisión de JWT, endpoint de detección de zona (punto-en-polígono).
+    \item \textbf{Entregables:} API de autenticación funcional y datos de prueba (seed).
+    \item \textbf{Diagramas:} casos de uso (Módulo 1), clases (Usuario, Zona).
+    \item \textbf{Sprint Review:} validación de login/registro; \textit{feedback:} agregar autocompletado por DNI.
+    \item \textbf{Retrospective:} reforzar pruebas del endpoint de zonas.
+\end{itemize}
+
+\subsection{Sprint 2 — Núcleo operativo y app móvil}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Objetivo:} implementar rutas, residuos e incidencias, y las primeras pantallas móviles.
+    \item \textbf{Historias:} RF-05 a RF-11 (completadas).
+    \item \textbf{Entregables:} CRUD de rutas + ubicación, catálogo de residuos, incidencias con GPS, app móvil navegable.
+    \item \textbf{Diagramas:} casos de uso (Módulos 2-4), secuencia (reporte de incidencia), actividades (registro).
+    \item \textbf{Sprint Review:} validación del reporte de incidencias; \textit{feedback:} detección de zona en el registro.
+    \item \textbf{Retrospective:} unificar el formato de respuestas de la API.
+\end{itemize}
+
+\subsection{Sprint 3 — Alertas, reportes, web y despliegue}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Objetivo:} cerrar funcionalidades y desplegar el sistema.
+    \item \textbf{Historias:} RF-12 a RF-16, dashboard web, despliegue y APK.
+    \item \textbf{Entregables:} alertas, reportes por zona/categoría, dashboard web, backend en Render, APK Android.
+    \item \textbf{Diagramas:} componentes (arquitectura), despliegue.
+    \item \textbf{Sprint Review:} demostración del sistema completo (web + móvil).
+    \item \textbf{Retrospective:} documentar y preparar la exposición.
+\end{itemize}
+
+% =================================================================
+% ARQUITECTURA
+% =================================================================
+\newpage
+\section{Diseño y Arquitectura del Sistema}
+\subsection{Arquitectura general}
+Arquitectura \textbf{cliente--servidor} en la nube:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Clientes:} app móvil (Android/APK) y dashboard web (navegador).
+    \item \textbf{Servidor:} API REST (Node.js + Express) desplegada en Render.
+    \item \textbf{Datos:} MongoDB Atlas.
+    \item Comunicación HTTPS/JSON con autenticación JWT.
+\end{itemize}
+\begin{center}
+\textit{App móvil / Web $\longrightarrow$ API REST (Render) $\longrightarrow$ MongoDB Atlas}
+\end{center}
+
+\subsection{Modelo de datos (colecciones MongoDB)}
+Usuario, Zona (polígono geográfico), Ruta (estado y ubicación en vivo), Incidente, Residuo y Alerta. Relaciones: el Usuario pertenece a una Zona; la Ruta cubre una Zona y tiene un operador; el Incidente es reportado por un Usuario; el Residuo se registra por Zona.
+
+\subsection{Patrones y mantenibilidad}
+Separación por capas (rutas, modelos, middleware), respuestas uniformes \texttt{\{success, message, data\}}, control de acceso por rol y versionado en GitHub con ramas por historia. El sistema escala añadiendo zonas/rutas y desplegando réplicas del backend.
+
+% =================================================================
+% RESULTADOS Y CONCLUSIONES
+% =================================================================
+\newpage
+\section{Resultados y Conclusiones}
+\subsection{Resultados obtenidos}
+\begin{itemize}[leftmargin=*]
+    \item Sistema de tres capas funcional y \textbf{desplegado en la nube} (supera el 50\,\% exigido para la Entrega 2).
+    \item \textbf{11 de 16} requisitos funcionales completos; los módulos esenciales operativos.
+    \item App móvil instalable (APK) e integración con la API RENIEC (consulta de DNI).
+\end{itemize}
+
+\subsection{Impacto sostenible (AG-C01)}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Ambiental:} promueve la segregación y la recolección eficiente de residuos.
+    \item \textbf{Social:} fomenta la participación ciudadana y la comunicación con la municipalidad.
+    \item \textbf{Legal/ético:} cumplimiento de la Ley N.° 29733 (datos personales), Ley N.° 27314 (residuos sólidos) y NTP 900.058 (código de colores).
+\end{itemize}
+
+\subsection{Dificultades y soluciones}
+\begin{itemize}[leftmargin=*]
+    \item \textit{Pruebas en red local inestables} $\rightarrow$ se desplegó el backend en la nube (Render) con URL permanente.
+    \item \textit{Detección de zona limitada} $\rightarrow$ se ampliaron los polígonos para cubrir el área metropolitana.
+\end{itemize}
+
+\subsection{Conclusiones}
+\begin{enumerate}[leftmargin=*]
+    \item Se obtuvo un sistema funcional (backend, app móvil y dashboard web) desplegado en la nube.
+    \item Se aplicó SCRUM con Product Backlog priorizado, 3 sprints y ramas por historia de usuario.
+    \item El proyecto atiende un problema real con impacto ambiental, social y cumplimiento legal.
+    \item \textbf{Próximos pasos:} notificaciones push (RF-12/13), reportes avanzados (RF-15/16) y refinamiento del dashboard.
+\end{enumerate}
+
+\subsection*{Repositorio}
+\url{https://github.com/GamoLG/Gestion-de-Residuos-Cusco}
+
+\end{document}
