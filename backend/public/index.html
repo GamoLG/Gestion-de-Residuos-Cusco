@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Residuos Cusco · Panel de Administración</title>
+<style>
+  :root{
+    --bg:#0d1117; --elev:#161b22; --surf:#21262d; --bd:#30363d;
+    --tx:#c9d1d9; --tx2:#8b949e; --pri:#58a6ff; --priD:#1f6feb;
+    --ok:#3fb950; --warn:#d29922; --dang:#f85149;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--tx)}
+  a{color:var(--pri)}
+  button{cursor:pointer;font-family:inherit}
+  .hidden{display:none!important}
+
+  /* Login */
+  #login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .card{background:var(--elev);border:1px solid var(--bd);border-radius:14px;padding:28px}
+  .loginCard{width:100%;max-width:380px}
+  .logo{width:64px;height:64px;border-radius:16px;background:var(--surf);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 14px}
+  h1{font-size:22px;margin:0 0 4px;text-align:center}
+  .sub{color:var(--tx2);font-size:14px;text-align:center;margin-bottom:20px}
+  label{display:block;font-size:11px;letter-spacing:1px;color:var(--tx2);font-weight:700;margin:12px 0 6px}
+  input,select{width:100%;background:var(--bg);border:1px solid var(--bd);border-radius:8px;color:var(--tx);padding:11px 12px;font-size:15px}
+  .btn{background:var(--priD);color:#fff;border:none;border-radius:8px;padding:12px;width:100%;font-size:15px;font-weight:700;margin-top:18px}
+  .btn.sm{width:auto;padding:7px 12px;font-size:13px;margin:0}
+  .btn.ghost{background:transparent;border:1px solid var(--bd);color:var(--tx)}
+  .err{color:var(--dang);font-size:13px;margin-top:10px;text-align:center}
+
+  /* App */
+  #app{display:flex;min-height:100vh}
+  aside{width:220px;background:var(--elev);border-right:1px solid var(--bd);padding:18px 12px;display:flex;flex-direction:column;gap:4px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;padding:8px 10px 16px}
+  nav button{display:block;width:100%;text-align:left;background:transparent;border:none;color:var(--tx2);padding:11px 12px;border-radius:8px;font-size:14px}
+  nav button.active{background:var(--surf);color:var(--pri);font-weight:600}
+  main{flex:1;padding:24px;overflow:auto}
+  .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+  .top h2{margin:0;font-size:20px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:8px}
+  .stat{background:var(--elev);border:1px solid var(--bd);border-radius:12px;padding:18px}
+  .stat .n{font-size:30px;font-weight:800;color:var(--pri)}
+  .stat .l{color:var(--tx2);font-size:13px;margin-top:2px}
+  table{width:100%;border-collapse:collapse;background:var(--elev);border:1px solid var(--bd);border-radius:12px;overflow:hidden}
+  th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--bd);font-size:14px}
+  th{color:var(--tx2);font-size:11px;letter-spacing:1px;text-transform:uppercase}
+  tr:last-child td{border-bottom:none}
+  .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:16px}
+  .row .f{flex:1;min-width:140px}
+  .muted{color:var(--tx2)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="card loginCard">
+    <div class="logo">♻️</div>
+    <h1>Residuos Cusco</h1>
+    <div class="sub">Panel de Administración</div>
+    <label>CORREO</label>
+    <input id="email" type="email" placeholder="admin@residuos.cusco.gob.pe" />
+    <label>CONTRASEÑA</label>
+    <input id="password" type="password" placeholder="••••••••" />
+    <button class="btn" onclick="login()">Iniciar sesión</button>
+    <div id="loginErr" class="err"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <aside>
+    <div class="brand">♻️ Residuos Cusco</div>
+    <nav id="nav">
+      <button data-s="resumen" class="active" onclick="go('resumen')">Resumen</button>
+      <button data-s="usuarios" onclick="go('usuarios')">Usuarios</button>
+      <button data-s="zonas" onclick="go('zonas')">Zonas</button>
+      <button data-s="rutas" onclick="go('rutas')">Rutas</button>
+      <button data-s="incidencias" onclick="go('incidencias')">Incidencias</button>
+      <button data-s="residuos" onclick="go('residuos')">Residuos</button>
+    </nav>
+    <div style="flex:1"></div>
+    <div class="muted" style="font-size:12px;padding:0 10px" id="quien"></div>
+    <button class="btn ghost" onclick="logout()" style="margin-top:8px">Cerrar sesión</button>
+  </aside>
+  <main id="main"></main>
+</div>
+
+<script>
+const API = '/api';
+let token = localStorage.getItem('token') || null;
+let yo = JSON.parse(localStorage.getItem('yo') || 'null');
+
+async function api(path, opts={}){
+  const r = await fetch(API+path, {
+    ...opts,
+    headers:{'Content-Type':'application/json', ...(token?{Authorization:'Bearer '+token}:{}) , ...(opts.headers||{})},
+  });
+  const j = await r.json().catch(()=>({success:false,message:'Error'}));
+  if(!r.ok || j.success===false) throw new Error(j.message||('HTTP '+r.status));
+  return j.data;
+}
+
+async function login(){
+  const email=document.getElementById('email').value.trim();
+  const password=document.getElementById('password').value;
+  const err=document.getElementById('loginErr'); err.textContent='';
+  try{
+    const d=await api('/auth/login',{method:'POST',body:JSON.stringify({email,password})});
+    const rol=d.usuario.rol;
+    if(!['ADMIN_ZONA','ADMIN_MUNICIPAL','SUPER_ADMIN'].includes(rol)){ err.textContent='Esta cuenta no es de administrador.'; return; }
+    token=d.token; yo=d.usuario;
+    localStorage.setItem('token',token); localStorage.setItem('yo',JSON.stringify(yo));
+    mostrarApp();
+  }catch(e){ err.textContent=e.message; }
+}
+function logout(){ token=null;yo=null;localStorage.clear();location.reload(); }
+
+function mostrarApp(){
+  document.getElementById('login').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  document.getElementById('quien').textContent=yo.nombre+' · '+yo.rol;
+  go('resumen');
+}
+
+function go(s){
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.s===s));
+  ({resumen:vResumen,usuarios:vUsuarios,zonas:vZonas,rutas:vRutas,incidencias:vIncidencias,residuos:vResiduos})[s]();
+}
+const main=()=>document.getElementById('main');
+const esc=(x)=>String(x??'').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+const estadoColor={PENDIENTE:'var(--warn)',EN_PROGRESO:'var(--ok)',COMPLETADA:'var(--pri)',CANCELADA:'var(--dang)',EN_PROCESO:'var(--pri)',RESUELTO:'var(--ok)'};
+const pill=(t)=>`<span class="pill" style="background:${(estadoColor[t]||'var(--tx2)')}22;color:${estadoColor[t]||'var(--tx2)'}">${t}</span>`;
+
+async function vResumen(){
+  main().innerHTML='<div class="top"><h2>Resumen</h2></div><div class="cards" id="cards">Cargando…</div>';
+  try{
+    const [us,zo,ru,inc]=await Promise.all([api('/usuarios'),api('/zonas'),api('/rutas'),api('/incidentes')]);
+    const activas=ru.filter(r=>r.estado==='EN_PROGRESO').length;
+    const pend=inc.filter(i=>i.estado==='PENDIENTE').length;
+    document.getElementById('cards').innerHTML=[
+      ['Usuarios',us.length],['Zonas',zo.length],['Rutas',ru.length],
+      ['Camiones activos',activas],['Incidencias pendientes',pend]
+    ].map(([l,n])=>`<div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+  }catch(e){ document.getElementById('cards').innerHTML='<span class="err">'+e.message+'</span>'; }
+}
+
+async function vUsuarios(){
+  main().innerHTML='<div class="top"><h2>Usuarios</h2></div><div id="c">Cargando…</div>';
+  const [us,zo]=await Promise.all([api('/usuarios'),api('/zonas')]);
+  const opts=zo.map(z=>`<option value="${z._id}">${esc(z.nombre)}</option>`).join('');
+  document.getElementById('c').innerHTML=`<table><thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Zona</th><th>Asignar zona</th></tr></thead><tbody>${
+    us.map(u=>`<tr><td>${esc(u.nombre)}</td><td>${esc(u.email)}</td><td>${esc(u.rol)}</td><td>${esc(u.zona?.nombre||'—')}</td>
+    <td><select onchange="asignarZona('${u._id}',this.value)"><option value="">—</option>${opts}</select></td></tr>`).join('')
+  }</tbody></table>`;
+}
+async function asignarZona(uid,zid){ if(!zid)return; await api('/usuarios/'+uid+'/zona/'+zid,{method:'PUT'}); vUsuarios(); }
+
+async function vZonas(){
+  main().innerHTML='<div class="top"><h2>Zonas</h2></div>'+
+    '<div class="card" style="margin-bottom:16px"><div class="row"><div class="f"><label>Nombre</label><input id="zn"></div><div class="f"><label>Distrito</label><input id="zd"></div><button class="btn sm" onclick="crearZona()">Crear zona</button></div></div>'+
+    '<div id="c">Cargando…</div>';
+  const zo=await api('/zonas');
+  document.getElementById('c').innerHTML=`<table><thead><tr><th>Nombre</th><th>Distrito</th><th>Color</th></tr></thead><tbody>${
+    zo.map(z=>`<tr><td>${esc(z.nombre)}</td><td>${esc(z.distrito||'—')}</td><td><span class="pill" style="background:${z.color}33;color:${z.color}">${z.color}</span></td></tr>`).join('')
+  }</tbody></table>`;
+}
+async function crearZona(){
+  const nombre=document.getElementById('zn').value.trim(), distrito=document.getElementById('zd').value.trim();
+  if(!nombre)return alert('Nombre requerido');
+  await api('/zonas',{method:'POST',body:JSON.stringify({nombre,distrito})}); vZonas();
+}
+
+async function vRutas(){
+  main().innerHTML='<div class="top"><h2>Rutas</h2></div>'+
+    '<div class="card" style="margin-bottom:16px"><div class="row"><div class="f"><label>Nombre</label><input id="rn"></div><div class="f"><label>Placa</label><input id="rp"></div><div class="f"><label>Zona</label><select id="rz"></select></div><button class="btn sm" onclick="crearRuta()">Crear ruta</button></div></div>'+
+    '<div id="c">Cargando…</div>';
+  const [ru,zo]=await Promise.all([api('/rutas'),api('/zonas')]);
+  document.getElementById('rz').innerHTML=zo.map(z=>`<option value="${z._id}">${esc(z.nombre)}</option>`).join('');
+  const estados=['PENDIENTE','EN_PROGRESO','COMPLETADA','CANCELADA'];
+  document.getElementById('c').innerHTML=`<table><thead><tr><th>Nombre</th><th>Zona</th><th>Placa</th><th>Estado</th><th>Cambiar</th></tr></thead><tbody>${
+    ru.map(r=>`<tr><td>${esc(r.nombre)}</td><td>${esc(r.zona?.nombre||'—')}</td><td>${esc(r.camionPlaca||'—')}</td><td>${pill(r.estado)}</td>
+    <td><select onchange="estadoRuta('${r._id}',this.value)">${estados.map(e=>`<option ${e===r.estado?'selected':''}>${e}</option>`).join('')}</select></td></tr>`).join('')
+  }</tbody></table>`;
+}
+async function crearRuta(){
+  const nombre=document.getElementById('rn').value.trim(),camionPlaca=document.getElementById('rp').value.trim(),zona=document.getElementById('rz').value;
+  if(!nombre)return alert('Nombre requerido');
+  await api('/rutas',{method:'POST',body:JSON.stringify({nombre,camionPlaca,zona})}); vRutas();
+}
+async function estadoRuta(id,estado){ await api('/rutas/'+id+'/estado',{method:'PUT',body:JSON.stringify({estado})}); vRutas(); }
+
+async function vIncidencias(){
+  main().innerHTML='<div class="top"><h2>Incidencias</h2></div><div id="c">Cargando…</div>';
+  const inc=await api('/incidentes');
+  const estados=['PENDIENTE','EN_PROCESO','RESUELTO'];
+  document.getElementById('c').innerHTML=`<table><thead><tr><th>Tipo</th><th>Descripción</th><th>Ciudadano</th><th>Estado</th><th>Cambiar</th></tr></thead><tbody>${
+    inc.map(i=>`<tr><td>${esc(i.tipo)}</td><td>${esc(i.descripcion)}</td><td>${esc(i.usuario?.nombre||'—')}</td><td>${pill(i.estado)}</td>
+    <td><select onchange="estadoInc('${i._id}',this.value)">${estados.map(e=>`<option ${e===i.estado?'selected':''}>${e}</option>`).join('')}</select></td></tr>`).join('')||'<tr><td colspan=5 class="muted">Sin incidencias</td></tr>'
+  }</tbody></table>`;
+}
+async function estadoInc(id,estado){ await api('/incidentes/'+id+'/estado',{method:'PUT',body:JSON.stringify({estado})}); vIncidencias(); }
+
+async function vResiduos(){
+  main().innerHTML='<div class="top"><h2>Tipos de residuo</h2></div><div id="c">Cargando…</div>';
+  const re=await api('/residuos');
+  document.getElementById('c').innerHTML=`<table><thead><tr><th>Nombre</th><th>Categoría</th><th>Ejemplos</th></tr></thead><tbody>${
+    re.map(r=>`<tr><td>${esc(r.nombre)}</td><td>${esc(r.categoria)}</td><td class="muted">${esc((r.ejemplos||[]).join(', '))}</td></tr>`).join('')
+  }</tbody></table>`;
+}
+
+// Inicio
+if(token && yo) mostrarApp();
+</script>
+</body>
+</html>

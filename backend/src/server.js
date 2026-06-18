@@ -1,8 +1,11 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { connectDB } from './db.js';
-import { ok } from './utils.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 import authRoutes from './routes/auth.js';
 import zonasRoutes from './routes/zonas.js';
@@ -17,8 +20,10 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '5mb' }));
 
-app.get('/', (_req, res) => ok(res, { servicio: 'MiResiduos Cusco API', version: '1.0.0' }, 'API en línea'));
-app.get('/api/health', (_req, res) => ok(res, { estado: 'ok' }));
+app.get('/api/health', (_req, res) => res.json({ success: true, data: { estado: 'ok' } }));
+
+// Dashboard web de administrador (servido por el mismo backend)
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/zonas', zonasRoutes);
