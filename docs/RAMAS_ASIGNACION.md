@@ -25,12 +25,12 @@
 
 > Ajusten los nombres según cómo se repartieron realmente el trabajo.
 
-| Integrante | Ramas asignadas | Responsabilidad |
-|-----------|-----------------|-----------------|
-| **Jisbaj Gamarra Salas** | `feature/HU01-registro-ciudadanos`, `feature/HU02-inicio-sesion` | Autenticación y registro (backend + móvil) |
-| **Stephan Jhoel Cosio Loaiza** | `feature/HU05-monitoreo-rutas`, `feature/HU03-consulta-horarios` | Rutas, mapa y seguimiento |
-| **Luz Indira Ticona Felix** | `feature/HU06-reporte-incidencias`, `feature/HU07-segregacion-residuos` | Incidencias y catálogo de residuos |
-| **Luicho (GitHub/Integración)** | `feature/HU04-gestion-zonas`, `feature/HU08-dashboard-admin`, `main` | Zonas, dashboard web, integración y despliegue |
+| Integrante | Rol | Ramas asignadas | Responsabilidad |
+|-----------|-----|-----------------|-----------------|
+| **Luicho Quispe, Jhoel Alex (224871)** | Product Owner / Dev | `feature/HU04-gestion-zonas`, `feature/HU08-dashboard-admin`, `main` | Zonas, dashboard web, integración y despliegue |
+| **Luna Ccapa, Carlos Willian (210178)** | Developer Full Stack | `feature/HU01-registro-ciudadanos`, `feature/HU02-inicio-sesion` | Autenticación y registro (backend + móvil) |
+| **Puma Condori, Richard Braulio (161809)** | Developer Full Stack | `feature/HU06-reporte-incidencias`, `feature/HU07-segregacion-residuos` | Incidencias y catálogo de residuos |
+| **Huaracallo Arenas, Lino Zeynt (204798)** | Scrum Master / Dev | `feature/HU03-consulta-horarios`, `feature/HU05-monitoreo-rutas` | Rutas, mapa y seguimiento; facilita el proceso |
 
 ---
 

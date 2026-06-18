@@ -4,7 +4,7 @@
 **Asignatura:** IF614 – Ingeniería de Software I · **Escuela Profesional de Ing. Informática y de Sistemas – UNSAAC** · 2026-1
 **Atributo del graduado:** AG-C01 — El Profesional y el Mundo
 **Metodología:** SCRUM
-**Equipo:** Jisbaj Gamarra Salas · Stephan Jhoel Cosio Loaiza · Luz Indira Ticona Felix
+**Equipo:** Luicho Quispe, Jhoel Alex (224871) · Luna Ccapa, Carlos Willian (210178) · Puma Condori, Richard Braulio (161809) · Huaracallo Arenas, Lino Zeynt (204798)
 
 ---
 
@@ -50,11 +50,13 @@ La gestión de residuos en el Cusco presenta rutas no optimizadas, escasa comuni
 
 | Rol | Integrante | Funciones |
 |---|---|---|
-| **Product Owner** | *(definir)* | Prioriza el Product Backlog, define criterios de aceptación, representa al cliente (municipalidad/ciudadanía). |
-| **Scrum Master** | *(definir)* | Facilita el proceso, remueve impedimentos, asegura las ceremonias Scrum. |
-| **Developers** | *(equipo)* | Diseñan e implementan backend, app móvil y dashboard; pruebas y despliegue. |
+| **Scrum Master** | Huaracallo Arenas, Lino Zeynt (204798) | Facilita el proceso, remueve impedimentos, asegura las ceremonias Scrum. |
+| **Product Owner** | Luicho Quispe, Jhoel Alex (224871) | Prioriza el Product Backlog, define criterios de aceptación, representa al cliente (municipalidad/ciudadanía). |
+| **Developer (Full Stack)** | Luna Ccapa, Carlos Willian (210178) | Backend, app móvil y dashboard; pruebas. |
+| **Developer (Full Stack)** | Puma Condori, Richard Braulio (161809) | Backend, app móvil y dashboard; pruebas. |
+| **Developer (Full Stack)** | Luicho Quispe, Jhoel Alex (224871) | Integración y despliegue. |
 
-*(Asignar los nombres del equipo a cada rol.)*
+*Nota:* todos los integrantes participan como desarrolladores full stack; Lino Huaracallo asume además el rol de Scrum Master y Jhoel Luicho el de Product Owner.
 
 ## 1.7. Público objetivo del sistema
 - **Ciudadanos** del Cusco (consultan rutas/horarios, reciben alertas, reportan incidencias, aprenden a segregar).
@@ -157,7 +159,7 @@ La gestión de residuos en el Cusco presenta rutas no optimizadas, escasa comuni
 ---
 
 # PENDIENTE PARA COMPLETAR (antes de entregar)
-- [ ] Asignar nombres a los roles Scrum (1.6).
+- [x] Asignar nombres a los roles Scrum (1.6). ✅
 - [ ] Insertar **diagramas UML** (casos de uso, clases, secuencia, actividades, componentes).
 - [ ] Insertar **diagrama Entidad-Relación / modelo de datos**.
 - [ ] Insertar **capturas de pantalla** reales (app, dashboard).
