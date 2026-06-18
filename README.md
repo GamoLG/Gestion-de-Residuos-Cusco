@@ -6,6 +6,13 @@ Sistema integral para la **gestión y monitoreo de la recolección de residuos s
 - 🖥️ **Dashboard web** — administración municipal
 - ☁️ **API REST + base de datos** en la nube
 
+### ✨ Funcionalidades de la app móvil
+- Inicio de sesión y **registro** (con mapa de ubicación + GPS y autocompletado por **DNI**)
+- **Recuperar contraseña** (correo + DNI)
+- Botón **Continuar con Google** (se activa al configurar credenciales)
+- **Inicio**, **Mapa** (camiones en vivo), **Incidencias**, **Segregar** (guía de residuos) y **Perfil**
+- Tema oscuro/azul, ícono propio (símbolo de reciclaje) y barra de navegación adaptada al dispositivo
+
 > Curso **IF614 – Ingeniería de Software I** · Escuela Profesional de Ing. Informática y de Sistemas · **UNSAAC** · 2026-1
 > Metodología: **SCRUM** · Atributo del graduado: **AG-C01**
 
@@ -104,9 +111,11 @@ MiResiduosCusco/
 │   └── package.json
 ├── mobile-app/               # App móvil (Expo)
 │   ├── src/
-│   │   ├── app/              # pantallas (expo-router): login, register, (tabs)
+│   │   ├── app/              # pantallas (expo-router): login, register, forgot, (tabs)
 │   │   ├── components/MapaOSM.tsx
 │   │   └── lib/              # api.ts, auth.tsx, theme.ts
+│   ├── assets/logo.svg       # ícono de la app (símbolo de reciclaje)
+│   ├── scripts/gen-icons.mjs # genera los íconos desde logo.svg
 │   ├── app.json
 │   └── package.json
 ├── docs/                     # ENTREGA_2.md, DIAGRAMAS.md, RAMAS_ASIGNACION.md
@@ -288,6 +297,8 @@ Base: `/api`
 |---|---|---|---|
 | POST | `/auth/register` | Registro de ciudadano | Público |
 | POST | `/auth/login` | Inicio de sesión (JWT) | Público |
+| POST | `/auth/recuperar` | Recuperar contraseña (correo + DNI) | Público |
+| POST | `/auth/google` | Inicio de sesión con Google (verifica idToken) | Público |
 | GET | `/auth/me` | Perfil del usuario autenticado | Token |
 | GET | `/dni/:dni` | Consulta de DNI (RENIEC) | Público |
 | GET | `/zonas` | Listar zonas | Público |
