@@ -138,3 +138,71 @@ Ideas de IA aplicables (de menor a mayor dificultad):
 
 ## 10. Resumen de una frase
 Pasar de "ver rutas y reportar" a una **plataforma viva**: el ciudadano sabe **cuándo llega su camión**, el conductor **transmite su recorrido**, y la municipalidad **decide con datos** (estadísticas, rankings y zonas críticas) — todo diferenciado por rol y con avisos automáticos.
+
+---
+
+## 11. Asistente / Chatbot navegador (con IA)
+Un **chatbot** dentro de la app que, mediante preguntas, **lleva al usuario directo a la pantalla** que necesita.
+- Hace preguntas simples y, según la respuesta, **abre la interfaz correspondiente**.
+- Ejemplos:
+  - "¿Quieres saber cuándo pasa el camión?" → abre **Horarios / Mapa**.
+  - "¿Quieres reportar basura?" → abre **Incidencias** (con la cámara y GPS listos).
+  - "¿Dudas de dónde va un residuo?" → abre **Segregar** o responde al instante.
+  - "¿Eres conductor y quieres iniciar tu jornada?" → abre **Jornada**.
+- Pensado también para **adultos mayores** (lenguaje simple, opción por voz).
+- Implementación: reglas/intenciones + navegación (expo-router), opcionalmente con un LLM para entender lenguaje natural.
+
+---
+
+## 12. Dashboard web del Administrador — control total
+El admin **controla todo** desde la web (centralizado y completo):
+- **CRUD total:** usuarios, zonas, rutas, vehículos, residuos, incidencias (crear/editar/**eliminar**).
+- **Reportes de TODO** lo conveniente: por zona, por contaminante, por incidencia, por conductor/vehículo, cumplimiento de rutas, participación ciudadana, impacto ambiental.
+- **Exportación** PDF/Excel/CSV e **impresión** para la municipalidad.
+- **Dashboards en vivo:** camiones activos ahora, incidencias pendientes, KPIs.
+- **Auditoría:** registro de quién creó/editó/eliminó qué y cuándo.
+- **Gestión de horarios** de recojo por zona y **asignación de turnos** a conductores.
+
+---
+
+## 13. Ayuda y Soporte (WhatsApp)
+- Sección **"Ayuda / Soporte"** en la app y en la web.
+- **Número de WhatsApp** de la municipalidad para **quejas, soporte y consultas**, con botón directo (abre el chat de WhatsApp).
+- Complementos: **FAQ** (preguntas frecuentes) y **correo/teléfono** de contacto.
+- Las **quejas** pueden registrarse también como incidencia para darles seguimiento.
+
+---
+
+## 14. Ideas adicionales (recopilación)
+
+### Reportes (ampliados)
+- **Reportes programados** (semanal/mensual) enviados por correo al admin.
+- **Comparativos** entre periodos y entre zonas.
+- **Impacto ambiental:** kg reciclados, CO₂ evitado, % de segregación correcta.
+- Reporte **por conductor y por vehículo**.
+- **Datos abiertos (Open Data)** para transparencia.
+
+### Mapa y operación
+- **Puntos de acopio / contenedores** en el mapa.
+- **Optimización de rutas** (recorrido más eficiente).
+- **Nivel de llenado de contenedores** (sensores IoT — a futuro).
+- **Foto de evidencia** del conductor al completar una parada.
+
+### Ciudadano
+- **Solicitar recojo especial** (voluminosos, escombros) — agendar.
+- **QR en contenedores** para reportar al instante.
+- **Encuestas de satisfacción** del servicio.
+- **Novedades/campañas** municipales (jornadas de limpieza).
+
+### Educación / participación
+- **Quizzes y videos** de reciclaje; buscador "¿dónde va este residuo?".
+- **Gamificación con recompensas** (puntos, insignias, posibles beneficios).
+
+### Seguridad y gestión
+- **Verificación en 2 pasos (2FA)** y verificación de correo real.
+- **Multi-municipalidad:** escalar a otros distritos.
+
+### IA (más opciones)
+- **Predicción de generación de residuos** por zona (planificación).
+- **Detección de puntos críticos** (basurales recurrentes) con alerta al admin.
+- **Asistente por voz** para accesibilidad.
