@@ -1,0 +1,468 @@
+\documentclass[aspectratio=169, 11pt]{beamer}
+
+% ═══════════════════════════════════════════════════════════════════
+% CONFIGURACIÓN — estilo limpio, color sobrio (azul apagado)
+% ═══════════════════════════════════════════════════════════════════
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{lmodern}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{colortbl}
+
+\usetheme{default}
+\useinnertheme{circles}
+
+% Paleta: azul sobrio profesional + gris
+\definecolor{azulin}{RGB}{45,82,130}
+\definecolor{azulsuave}{RGB}{225,232,242}
+\definecolor{gristexto}{RGB}{70,70,70}
+\definecolor{verdeclaro}{RGB}{240,255,244}
+\definecolor{rojoclaro}{RGB}{255,245,245}
+\definecolor{azulclaro}{RGB}{235,248,255}
+
+\setbeamercolor{frametitle}{fg=azulin}
+\setbeamercolor{title}{fg=azulin}
+\setbeamercolor{structure}{fg=azulin}
+\setbeamercolor{itemize item}{fg=azulin}
+\setbeamercolor{itemize subitem}{fg=gristexto}
+\setbeamercolor{enumerate item}{fg=azulin}
+\setbeamercolor{block title}{bg=azulin, fg=white}
+\setbeamercolor{block body}{bg=azulsuave, fg=black}
+\setbeamercolor{normal text}{fg=black}
+
+\setbeamertemplate{navigation symbols}{}
+
+\setbeamertemplate{footline}{%
+    \hfill\insertframenumber\,/\,\inserttotalframenumber\hspace{0.4cm}\vspace{0.2cm}
+}
+
+\setbeamertemplate{frametitle}{%
+    \vspace{0.3cm}
+    {\color{azulin}\large\bfseries\insertframetitle}\par
+    {\color{azulin}\rule{\linewidth}{1pt}}
+}
+
+\setbeamerfont{title}{size=\Large, series=\bfseries}
+
+% ═══════════════════════════════════════════════════════════════════
+\begin{document}
+
+% ─── PORTADA ───
+\begin{frame}[plain]
+    \centering
+    \vspace{0.5cm}
+    {\footnotesize UNIVERSIDAD NACIONAL DE SAN ANTONIO ABAD DEL CUSCO}\\
+    {\footnotesize Escuela Profesional de Ingeniería Informática y de Sistemas}\\
+    {\footnotesize Curso: IF614 -- Ingeniería de Software I}\\[0.4cm]
+
+    {\color{azulin}\rule{\linewidth}{1.2pt}}\\[0.4cm]
+    {\Large\bfseries\color{azulin} SISTEMA INTELIGENTE DE RECOLECCIÓN}\\[0.15cm]
+    {\Large\bfseries\color{azulin} DE RESIDUOS SÓLIDOS SEGREGADOS -- CUSCO}\\[0.3cm]
+    {\large\bfseries\color{azulin} Entrega N.° 2 -- Documentación y sistema funcional}\\[0.4cm]
+    {\color{azulin}\rule{\linewidth}{1.2pt}}\\[0.5cm]
+
+    {\normalsize Metodología: SCRUM \quad$|$\quad Atributo del graduado: AG-C01}\\[0.3cm]
+    {\normalsize Semestre 2026-I}\\[0.5cm]
+
+    {\footnotesize
+    \textbf{Integrantes:}\\
+    Luicho Quispe, Jhoel Alex (224871) $|$
+    Luna Ccapa, Carlos Willian (210178)\\
+    Puma Condori, Richard Braulio (161809) $|$
+    Huaracallo Arenas, Lino Zeynt (204798)\\[0.2cm]
+    Cusco -- Perú, 2026}
+\end{frame}
+
+% ─── AGENDA ───
+\begin{frame}{Contenido}
+    \begin{enumerate}
+        \item \textbf{Problema y objetivos} del proyecto
+        \item \textbf{Alcance} y público objetivo
+        \item \textbf{Metodología SCRUM}: roles y Product Backlog
+        \item \textbf{Sprints} realizados
+        \item \textbf{Arquitectura y tecnologías}
+        \item \textbf{Sistema construido}: backend, app móvil y dashboard web
+        \item \textbf{Despliegue} en la nube y APK
+        \item \textbf{Diagramas} (UML / Entidad-Relación)
+        \item \textbf{Resultados} y \textbf{conclusiones}
+    \end{enumerate}
+\end{frame}
+
+% ─── PROBLEMA Y OBJETIVOS ───
+\begin{frame}{1 — Problema y Objetivos}
+    \vspace{-0.3cm}
+    \begin{columns}[T]
+    \column{0.48\textwidth}
+    \begin{block}{Problema}
+        \footnotesize
+        En el Cusco la recolección de residuos presenta:
+        \begin{itemize}
+            \item Rutas no optimizadas, sin trazabilidad
+            \item Escasa comunicación con la población
+            \item Baja cultura de segregación
+            \item Ausencia de reportes para decidir
+        \end{itemize}
+    \end{block}
+
+    \column{0.48\textwidth}
+    \begin{block}{Objetivo general}
+        \footnotesize
+        Diseñar e implementar un sistema inteligente de gestión de residuos sólidos segregados que optimice la recolección, mejore la comunicación con la ciudadanía y genere información para la toma de decisiones, aplicando SCRUM.
+    \end{block}
+    \end{columns}
+    \vspace{0.15cm}
+    \begin{block}{Objetivos específicos}
+        \footnotesize
+        Gestión de usuarios y zonas $\cdot$ catálogo y guía de segregación $\cdot$ monitoreo de rutas con ubicación $\cdot$ app móvil ciudadana $\cdot$ sistema de alertas $\cdot$ reportes y analítica.
+    \end{block}
+\end{frame}
+
+% ─── ALCANCE ───
+\begin{frame}{2 — Alcance y Público Objetivo}
+    \vspace{-0.3cm}
+    \begin{columns}[T]
+    \column{0.5\textwidth}
+    \begin{block}{Alcance}
+        \footnotesize
+        \begin{itemize}
+            \item Administración de usuarios y zonas
+            \item Catálogo de residuos y segregación
+            \item Monitoreo de rutas
+            \item App móvil ciudadana
+            \item Alertas y reportes
+        \end{itemize}
+        \textit{\scriptsize Fuera de alcance: hardware IoT, pasarelas de pago, sistemas tributarios.}
+    \end{block}
+
+    \column{0.46\textwidth}
+    \begin{block}{Público objetivo}
+        \footnotesize
+        \begin{itemize}
+            \item \textbf{Ciudadanos:} rutas, alertas, reportar incidencias, segregar
+            \item \textbf{Operadores:} ejecutar rutas, enviar ubicación
+            \item \textbf{Administradores:} zonas, rutas, usuarios, reportes
+        \end{itemize}
+    \end{block}
+    \end{columns}
+\end{frame}
+
+% ─── SCRUM: ROLES + BACKLOG ───
+\begin{frame}{3 — Metodología SCRUM: Roles}
+    \vspace{-0.2cm}
+    \begin{block}{Equipo Scrum}
+        \footnotesize
+        \begin{table}
+        \scriptsize
+        \begin{tabular}{|l|l|l|}
+        \hline
+        \rowcolor{azulin}
+        \textcolor{white}{\textbf{Rol}} & \textcolor{white}{\textbf{Integrante}} & \textcolor{white}{\textbf{Función}} \\
+        \hline
+        Scrum Master & Huaracallo Arenas, Lino Zeynt & Facilita el proceso, remueve impedimentos \\
+        \hline
+        Product Owner & Luicho Quispe, Jhoel Alex & Prioriza el backlog, criterios de aceptación \\
+        \hline
+        Developer (Full Stack) & Luna Ccapa, Carlos Willian & Backend, app móvil y dashboard \\
+        \hline
+        Developer (Full Stack) & Puma Condori, Richard Braulio & Backend, app móvil y dashboard \\
+        \hline
+        Developer (Full Stack) & Luicho Quispe, Jhoel Alex & Integración y despliegue \\
+        \hline
+        \end{tabular}
+        \end{table}
+        \vspace{0.1cm}
+        \scriptsize Todos los integrantes participan como desarrolladores full stack; Lino asume además el rol de Scrum Master.
+    \end{block}
+    \begin{block}{Herramientas de colaboración}
+        \footnotesize
+        GitHub (repositorio y ramas) $\cdot$ Render (despliegue) $\cdot$ MongoDB Atlas (BD) $\cdot$ Expo (app móvil).
+    \end{block}
+\end{frame}
+
+% ─── PRODUCT BACKLOG ───
+\begin{frame}{3 — Product Backlog (Requisitos)}
+    \vspace{-0.35cm}
+    \begin{columns}[T]
+    \column{0.56\textwidth}
+    \begin{block}{Requisitos Funcionales}
+        \scriptsize
+        \begin{tabular}{|l|l|c|}
+        \hline
+        \rowcolor{azulin}
+        \textcolor{white}{\textbf{ID}} & \textcolor{white}{\textbf{Requisito}} & \textcolor{white}{\textbf{Est.}}\\
+        \hline
+        RF-01 & Registro de ciudadanos & \checkmark \\
+        RF-02 & Autenticación (JWT) & \checkmark \\
+        RF-03/04 & Zonas + asignación (GPS) & \checkmark \\
+        RF-05/06 & Tipos y clasificación de residuos & \checkmark \\
+        RF-07/08/09 & Rutas + ubicación + gestión & \checkmark \\
+        RF-10 & Consulta de rutas (móvil) & \checkmark \\
+        RF-11 & Reporte de incidencias (GPS) & \checkmark \\
+        RF-14 & Reporte de residuos por zona & \checkmark \\
+        RF-12/13/15/16 & Alertas y reportes avanzados & $\sim$ \\
+        \hline
+        \end{tabular}
+    \end{block}
+
+    \column{0.42\textwidth}
+    \begin{block}{Requisitos No Funcionales}
+        \scriptsize
+        \begin{itemize}
+            \item Seguridad: bcrypt + JWT
+            \item Disponibilidad: nube 24/7
+            \item Usabilidad: interfaz simple
+            \item Rendimiento: $<$ 3 s
+            \item Portabilidad: APK Android
+            \item Privacidad: Ley 29733
+        \end{itemize}
+    \end{block}
+    \end{columns}
+    \vspace{0.1cm}
+    \centering{\scriptsize \checkmark\ completado \quad $\sim$\ parcial}
+\end{frame}
+
+% ─── SPRINTS ───
+\begin{frame}{4 — Sprints Realizados}
+    \vspace{-0.2cm}
+    \begin{block}{3 Sprints · 2 semanas cada uno}
+        \footnotesize
+        \begin{table}
+        \scriptsize
+        \begin{tabular}{|l|p{4.2cm}|p{4.8cm}|}
+        \hline
+        \rowcolor{azulin}
+        \textcolor{white}{\textbf{Sprint}} & \textcolor{white}{\textbf{Objetivo}} & \textcolor{white}{\textbf{Entregables}}\\
+        \hline
+        \textbf{1} & Autenticación y gestión de usuarios/zonas & API auth (JWT), modelos, zonas, detección por GPS \\
+        \hline
+        \textbf{2} & Núcleo operativo + app móvil & Rutas + ubicación, residuos, incidencias, pantallas móviles \\
+        \hline
+        \textbf{3} & Alertas, reportes, web y despliegue & Dashboard web, reportes, despliegue en la nube, APK \\
+        \hline
+        \end{tabular}
+        \end{table}
+    \end{block}
+    \begin{block}{Ramas por historia (GitHub)}
+        \scriptsize
+        \texttt{feature/HU01-registro-ciudadanos} \dots \texttt{feature/HU08-dashboard-admin}\\
+        Flujo: rama por HU $\rightarrow$ commit $\rightarrow$ Pull Request $\rightarrow$ merge a \texttt{main} $\rightarrow$ despliegue.
+    \end{block}
+\end{frame}
+
+% ─── ARQUITECTURA Y TECNOLOGÍAS ───
+\begin{frame}{5 — Arquitectura y Tecnologías}
+    \vspace{-0.3cm}
+    \begin{columns}[T]
+    \column{0.5\textwidth}
+    \begin{block}{Arquitectura (cliente–servidor)}
+        \scriptsize
+        \begin{itemize}
+            \item \textbf{Clientes:} app móvil (Android) + dashboard web
+            \item \textbf{Servidor:} API REST (Node/Express) en Render
+            \item \textbf{Datos:} MongoDB Atlas (nube)
+            \item Comunicación HTTPS/JSON, autenticación JWT
+        \end{itemize}
+    \end{block}
+
+    \column{0.48\textwidth}
+    \begin{block}{Tecnologías}
+        \scriptsize
+        \begin{itemize}
+            \item Backend: \textbf{Node.js + Express}
+            \item Base de datos: \textbf{MongoDB} (Mongoose)
+            \item App: \textbf{Expo / React Native} (TypeScript)
+            \item Web: HTML + JS (servido por Express)
+            \item Mapas: OpenStreetMap / Leaflet
+            \item Integración: API RENIEC (DNI)
+        \end{itemize}
+    \end{block}
+    \end{columns}
+    \vspace{0.1cm}
+    \begin{block}{Flujo}
+        \centering\scriptsize
+        App móvil / Web $\;\longrightarrow\;$ API REST (Render) $\;\longrightarrow\;$ MongoDB Atlas
+    \end{block}
+\end{frame}
+
+% ─── SISTEMA: BACKEND ───
+\begin{frame}{6 — Sistema: Backend (API REST)}
+    \vspace{-0.3cm}
+    \begin{columns}[T]
+    \column{0.48\textwidth}
+    \begin{block}{Modelos de datos}
+        \footnotesize
+        \begin{itemize}
+            \item Usuario (roles, zona, ubicación)
+            \item Zona (polígono geográfico)
+            \item Ruta (estado, ubicación en vivo)
+            \item Incidente, Residuo, Alerta
+        \end{itemize}
+    \end{block}
+    \begin{block}{Seguridad}
+        \footnotesize
+        Contraseñas con \textbf{bcrypt} $\cdot$ sesión con \textbf{JWT} $\cdot$ control de acceso por rol.
+    \end{block}
+
+    \column{0.48\textwidth}
+    \begin{block}{Endpoints principales}
+        \scriptsize
+        \begin{itemize}
+            \item \texttt{/auth/register}, \texttt{/auth/login}
+            \item \texttt{/zonas}, \texttt{/zonas/detect} (GPS)
+            \item \texttt{/rutas}, \texttt{/rutas/:id/ubicacion}
+            \item \texttt{/incidentes}, \texttt{/residuos}
+            \item \texttt{/usuarios}, \texttt{/alertas}, \texttt{/dni/:dni}
+        \end{itemize}
+    \end{block}
+    \begin{block}{Detección de zona}
+        \scriptsize
+        Consulta geoespacial \textbf{punto-en-polígono} para asignar la zona del ciudadano por su ubicación.
+    \end{block}
+    \end{columns}
+\end{frame}
+
+% ─── SISTEMA: APP MÓVIL + WEB ───
+\begin{frame}{6 — Sistema: App Móvil y Dashboard Web}
+    \vspace{-0.3cm}
+    \begin{columns}[T]
+    \column{0.5\textwidth}
+    \begin{block}{App móvil (Android / APK)}
+        \footnotesize
+        \begin{itemize}
+            \item Login y registro (mapa + GPS)
+            \item Autocompletar datos por \textbf{DNI} (RENIEC)
+            \item Inicio: rutas y estado
+            \item \textbf{Mapa: camiones en vivo}
+            \item Reporte de incidencias con foto/ubicación
+            \item Guía de segregación $\cdot$ Perfil
+        \end{itemize}
+    \end{block}
+
+    \column{0.46\textwidth}
+    \begin{block}{Dashboard web (administración)}
+        \footnotesize
+        \begin{itemize}
+            \item Resumen / indicadores
+            \item Gestión de usuarios y zonas
+            \item Gestión de rutas y estados
+            \item Gestión de incidencias
+            \item Catálogo de residuos
+        \end{itemize}
+        \scriptsize Servido por el mismo backend (misma URL).
+    \end{block}
+    \end{columns}
+    \vspace{0.1cm}
+    \centering{\scriptsize \textit{[Insertar capturas reales de la app y el dashboard]}}
+\end{frame}
+
+% ─── DESPLIEGUE ───
+\begin{frame}{7 — Despliegue en la Nube y APK}
+    \vspace{-0.3cm}
+    \begin{columns}[T]
+    \column{0.5\textwidth}
+    \begin{block}{Despliegue}
+        \footnotesize
+        \begin{itemize}
+            \item \textbf{Backend + Web:} Render (en línea 24/7)
+            \item \textbf{Base de datos:} MongoDB Atlas
+            \item \textbf{Repositorio:} GitHub (main + ramas)
+            \item \textbf{App:} APK Android instalable
+        \end{itemize}
+    \end{block}
+
+    \column{0.48\textwidth}
+    \begin{block}{Funciona desde cualquier red}
+        \footnotesize
+        El sistema deja de depender de una PC local: la app y el dashboard se conectan a un backend en la nube con URL permanente.
+    \end{block}
+    \end{columns}
+    \vspace{0.1cm}
+    \begin{block}{Estado de la Entrega 2}
+        \footnotesize
+        Sistema \textbf{funcional} (supera el 50\% requerido): backend + app + dashboard desplegados. Documentación: Capítulo I, II y bosquejo del III.
+    \end{block}
+\end{frame}
+
+% ─── DIAGRAMAS ───
+\begin{frame}{8 — Diagramas (UML / Entidad-Relación)}
+    \vspace{-0.2cm}
+    \begin{block}{Diagramas elaborados}
+        \footnotesize
+        \begin{itemize}
+            \item \textbf{Casos de uso} — actores: ciudadano, operador, administrador
+            \item \textbf{Clases / dominio} — Usuario, Zona, Ruta, Incidente, Residuo, Alerta
+            \item \textbf{Entidad-Relación} — colecciones y relaciones en MongoDB
+            \item \textbf{Secuencia} — login y reporte de incidencia
+            \item \textbf{Componentes} — clientes, API y base de datos
+        \end{itemize}
+    \end{block}
+    \centering{\scriptsize \textit{[Insertar aquí los diagramas — disponibles en docs/DIAGRAMAS.md]}}
+\end{frame}
+
+% ─── RESULTADOS ───
+\begin{frame}{9 — Resultados}
+    \vspace{-0.3cm}
+    \begin{columns}[T]
+    \column{0.5\textwidth}
+    \begin{block}{Logros}
+        \footnotesize
+        \begin{itemize}
+            \item Sistema de 3 capas funcional y desplegado
+            \item 11 de 16 requisitos funcionales completos
+            \item App móvil instalable (APK)
+            \item Integración con API RENIEC (DNI)
+        \end{itemize}
+    \end{block}
+
+    \column{0.48\textwidth}
+    \begin{block}{Impacto (AG-C01)}
+        \footnotesize
+        \begin{itemize}
+            \item \textbf{Ambiental:} promueve la segregación
+            \item \textbf{Social:} participación ciudadana
+            \item \textbf{Legal:} Ley 29733, Ley 27314, NTP 900.058
+        \end{itemize}
+    \end{block}
+    \end{columns}
+    \vspace{0.1cm}
+    \begin{block}{Pendiente}
+        \footnotesize
+        Notificaciones push de cercanía/retraso (RF-12/13) y reportes avanzados (RF-15/16) — previstos para la siguiente etapa.
+    \end{block}
+\end{frame}
+
+% ─── CONCLUSIONES ───
+\begin{frame}{Conclusiones}
+    \vspace{-0.3cm}
+    \begin{enumerate}
+        \item \textbf{Sistema funcional desplegado}\\
+        \footnotesize Backend (Node/Express + MongoDB), app móvil (Expo) y dashboard web, en la nube — supera el 50\% requerido para la Entrega 2.
+        \vspace{0.1cm}
+        \item \textbf{SCRUM aplicado}\\
+        \footnotesize Product Backlog priorizado, 3 sprints, ramas por historia de usuario y trabajo colaborativo en GitHub.
+        \vspace{0.1cm}
+        \item \textbf{Cobertura de requisitos}\\
+        \footnotesize 11/16 RF completos; los módulos esenciales (usuarios, zonas, rutas, residuos, incidencias) operativos.
+        \vspace{0.1cm}
+        \item \textbf{Responsabilidad ética y legal}\\
+        \footnotesize Cifrado de datos, manejo responsable de información personal (Ley 29733) y alineación con normas ambientales.
+        \vspace{0.1cm}
+        \item \textbf{Próximos pasos}\\
+        \footnotesize Notificaciones push, reportes avanzados y refinamiento del dashboard para la entrega final.
+    \end{enumerate}
+\end{frame}
+
+% ─── CIERRE ───
+\begin{frame}[plain]
+    \centering
+    \vspace{2.5cm}
+    {\color{azulin}\rule{0.5\linewidth}{1pt}}\\[0.5cm]
+    {\Large\bfseries\color{azulin} Gracias por su atención}\\[0.4cm]
+    {\normalsize ¿Preguntas?}\\[0.4cm]
+    {\color{azulin}\rule{0.5\linewidth}{1pt}}
+\end{frame}
+
+\end{document}
