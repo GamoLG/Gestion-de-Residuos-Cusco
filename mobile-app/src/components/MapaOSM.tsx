@@ -19,17 +19,24 @@ export interface Polilinea {
   discontinua?: boolean;
 }
 
+export interface PuntoCalor {
+  lat: number;
+  lng: number;
+  peso?: number; // 0-1 (intensidad)
+}
+
 interface Props {
   centro: { lat: number; lng: number };
   zoom?: number;
   marcadores?: Marcador[];
   polilineas?: Polilinea[];
+  calor?: PuntoCalor[]; // mapa de calor (zonas críticas)
   ajustar?: boolean; // encuadrar el mapa a los elementos
   onTocarMapa?: (lat: number, lng: number) => void;
   style?: any;
 }
 
-export function MapaOSM({ centro, zoom = 13, marcadores = [], polilineas = [], ajustar = false, onTocarMapa, style }: Props) {
+export function MapaOSM({ centro, zoom = 13, marcadores = [], polilineas = [], calor = [], ajustar = false, onTocarMapa, style }: Props) {
   const ref = useRef<WebView>(null);
   const listo = useRef(false);
 
@@ -39,8 +46,8 @@ export function MapaOSM({ centro, zoom = 13, marcadores = [], polilineas = [], a
   }, []);
 
   useEffect(() => {
-    enviar({ tipo: 'datos', marcadores, polilineas, ajustar });
-  }, [marcadores, polilineas, ajustar, enviar]);
+    enviar({ tipo: 'datos', marcadores, polilineas, calor, ajustar });
+  }, [marcadores, polilineas, calor, ajustar, enviar]);
 
   const html = useMemo(
     () => `<!DOCTYPE html><html><head>
@@ -51,8 +58,9 @@ export function MapaOSM({ centro, zoom = 13, marcadores = [], polilineas = [], a
 .emo{font-size:26px;line-height:30px;text-shadow:0 1px 3px rgba(0,0,0,.6)}</style>
 </head><body><div id="m"></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <script>
-var map, capa, capaL, ajustado=false;
+var map, capa, capaL, capaCalor=null, ajustado=false;
 function send(o){ if(window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify(o)); }
 function init(){
   map = L.map('m',{zoomControl:true,attributionControl:false}).setView([${centro.lat},${centro.lng}],${zoom});
@@ -84,6 +92,11 @@ window.handle=function(cmd){
       mk.addTo(capa);
       pts.push([m.lat,m.lng]);
     });
+    if(capaCalor){ map.removeLayer(capaCalor); capaCalor=null; }
+    if(cmd.calor && cmd.calor.length && window.L.heatLayer){
+      capaCalor=L.heatLayer(cmd.calor.map(function(p){return [p.lat,p.lng,(p.peso||0.6)]}),
+        {radius:38,blur:26,maxZoom:17,gradient:{0.2:'#58a6ff',0.5:'#d29922',0.8:'#f85149'}}).addTo(map);
+    }
     if(cmd.ajustar && pts.length && !ajustado){
       try{ map.fitBounds(pts,{padding:[40,40],maxZoom:16}); ajustado=true; }catch(e){}
     }
@@ -98,7 +111,7 @@ if(document.readyState!=='loading') init();
   const onMessage = (e: WebViewMessageEvent) => {
     try {
       const d = JSON.parse(e.nativeEvent.data);
-      if (d.tipo === 'listo') { listo.current = true; enviar({ tipo: 'datos', marcadores, polilineas, ajustar }); }
+      if (d.tipo === 'listo') { listo.current = true; enviar({ tipo: 'datos', marcadores, polilineas, calor, ajustar }); }
       else if (d.tipo === 'tap' && onTocarMapa) onTocarMapa(d.lat, d.lng);
     } catch {}
   };

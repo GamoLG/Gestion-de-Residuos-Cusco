@@ -14,6 +14,17 @@ router.get('/', autenticar, permitir(...ADMIN), async (_req, res) => {
   return ok(res, items);
 });
 
+// GET /api/incidentes/puntos  — coordenadas para el mapa de calor de zonas críticas
+// (cualquier usuario autenticado; pendientes pesan más que resueltas)
+router.get('/puntos', autenticar, async (_req, res) => {
+  const items = await Incidente.find({ latitud: { $ne: null }, longitud: { $ne: null } })
+    .select('latitud longitud estado')
+    .sort('-createdAt')
+    .limit(500);
+  const peso = { PENDIENTE: 1, EN_PROCESO: 0.6, RESUELTO: 0.25 };
+  return ok(res, items.map((i) => ({ lat: i.latitud, lng: i.longitud, peso: peso[i.estado] ?? 0.5 })));
+});
+
 // GET /api/incidentes/mis-reportes
 router.get('/mis-reportes', autenticar, async (req, res) => {
   const items = await Incidente.find({ usuario: req.usuario.id }).sort('-createdAt');

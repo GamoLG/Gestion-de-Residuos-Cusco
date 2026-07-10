@@ -110,6 +110,7 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script>
 const API = '/api';
@@ -180,7 +181,8 @@ async function vResumen(){
   <div class="cards" id="cards">Cargando…</div>
   <div class="chartBox"><h3>🛰️ Mapa en vivo — camiones, operadores y ciudadanos (se actualiza cada 8 s)</h3>
     <div id="mapaVivo"></div>
-    <div class="leyenda"><span>🚛 Camión en ruta</span><span>🟣 Ciudadano (en vivo)</span><span>⚪ Ciudadano (última posición)</span><span>— línea: ruta planificada</span></div>
+    <div class="leyenda"><span>🚛 Camión en ruta</span><span>🟣 Ciudadano (en vivo)</span><span>⚪ Ciudadano (última posición)</span><span>— línea: ruta planificada</span>
+      <label style="margin-left:auto;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="chkCalor" style="width:auto" checked> 🔥 Mapa de calor (zonas críticas)</label></div>
   </div>`;
   try{
     const d=await api('/reportes/resumen');
@@ -193,6 +195,19 @@ async function vResumen(){
   mapaVivo=L.map('mapaVivo').setView([-13.5226,-71.9673],13);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(mapaVivo);
   const capa=L.layerGroup().addTo(mapaVivo);
+  let capaCalor=null;
+
+  async function refrescarCalor(){
+    try{
+      const chk=document.getElementById('chkCalor');
+      if(capaCalor){ mapaVivo.removeLayer(capaCalor); capaCalor=null; }
+      if(!chk||!chk.checked||!L.heatLayer) return;
+      const pts=await api('/incidentes/puntos');
+      if(pts.length) capaCalor=L.heatLayer(pts.map(p=>[p.lat,p.lng,p.peso||0.6]),
+        {radius:38,blur:26,maxZoom:17,gradient:{0.2:'#58a6ff',0.5:'#d29922',0.8:'#f85149'}}).addTo(mapaVivo);
+    }catch(e){}
+  }
+  document.getElementById('chkCalor').onchange=refrescarCalor;
 
   async function refrescarVivo(){
     try{
@@ -219,6 +234,7 @@ async function vResumen(){
     }catch(e){}
   }
   refrescarVivo();
+  refrescarCalor();
   timerVivo=setInterval(refrescarVivo,8000);
 }
 
@@ -377,11 +393,17 @@ async function vIncidencias(){
   <div class="tablaWrap" id="c">Cargando…</div>`;
   const inc=await api('/incidentes');
   const estados=['PENDIENTE','EN_PROCESO','RESUELTO'];
-  document.getElementById('c').innerHTML=`<table><thead><tr><th>Fecha</th><th>Tipo</th><th>Descripción</th><th>Ciudadano</th><th>Zona</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${
-    inc.map(i=>`<tr><td>${new Date(i.createdAt).toLocaleDateString('es-PE')}</td><td>${esc(i.tipo)}</td><td class="wrap">${esc(i.descripcion)}</td><td>${esc(i.usuario?.nombre||'—')}</td><td>${esc(i.zona?.nombre||'—')}</td><td>${pill(i.estado)}</td>
+  document.getElementById('c').innerHTML=`<table><thead><tr><th>Fecha</th><th>Foto</th><th>Tipo</th><th>Descripción</th><th>Ciudadano</th><th>Zona</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${
+    inc.map(i=>`<tr><td>${new Date(i.createdAt).toLocaleDateString('es-PE')}</td>
+    <td>${i.foto?`<img src="${i.foto.startsWith('data:')?i.foto:esc(i.foto)}" style="width:52px;height:52px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="verFoto(this.src)">`:'—'}</td>
+    <td>${esc(i.tipo)}</td><td class="wrap">${esc(i.descripcion)}</td><td>${esc(i.usuario?.nombre||'—')}</td><td>${esc(i.zona?.nombre||'—')}</td><td>${pill(i.estado)}</td>
     <td><select class="mini" onchange="estadoInc('${i._id}',this.value)">${estados.map(e=>`<option ${e===i.estado?'selected':''}>${e}</option>`).join('')}</select>
-        <button class="mini rojo" onclick="eliminarInc('${i._id}')">🗑</button></td></tr>`).join('')||'<tr><td colspan=7 class="muted">Sin incidencias</td></tr>'
+        <button class="mini rojo" onclick="eliminarInc('${i._id}')">🗑</button></td></tr>`).join('')||'<tr><td colspan=8 class="muted">Sin incidencias</td></tr>'
   }</tbody></table>`;
+}
+function verFoto(src){
+  const w=window.open('','_blank');
+  w.document.write('<body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="'+src+'" style="max-width:100%;max-height:100vh"></body>');
 }
 async function estadoInc(id,estado){ try{ await api('/incidentes/'+id+'/estado',{method:'PUT',body:JSON.stringify({estado})}); vIncidencias(); }catch(e){alert(e.message)} }
 async function eliminarInc(id){ if(!confirm('¿Eliminar incidencia?'))return; try{ await api('/incidentes/'+id,{method:'DELETE'}); vIncidencias(); }catch(e){alert(e.message)} }

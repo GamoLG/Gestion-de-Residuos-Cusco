@@ -1,10 +1,10 @@
 import { useState, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import * as Location from 'expo-location';
 import api from '../../lib/api';
 import { useAuth } from '../../lib/auth';
-import { MapaOSM, Marcador, Polilinea } from '../../components/MapaOSM';
+import { MapaOSM, Marcador, Polilinea, PuntoCalor } from '../../components/MapaOSM';
 import { colors, spacing, acentoDe } from '../../lib/theme';
 
 const CUSCO = { lat: -13.52264, lng: -71.96734 };
@@ -16,6 +16,8 @@ export default function Mapa() {
   const [lineas, setLineas] = useState<Polilinea[]>([]);
   const [activos, setActivos] = useState(0);
   const [eta, setEta] = useState<string | null>(null);
+  const [verCalor, setVerCalor] = useState(false);
+  const [calor, setCalor] = useState<PuntoCalor[]>([]);
   const timer = useRef<any>(null);
   const gpsWatch = useRef<Location.LocationSubscription | null>(null);
   const miPos = useRef<{ lat: number; lng: number } | null>(null);
@@ -80,6 +82,17 @@ export default function Mapa() {
     } catch {}
   }, [usuario?.latitud, usuario?.longitud]);
 
+  // Zonas críticas: mapa de calor con las incidencias reportadas
+  const cargarCalor = useCallback(async () => {
+    try { const { data } = await api.get('/incidentes/puntos'); setCalor(data.data || []); } catch {}
+  }, []);
+
+  const alternarCalor = () => {
+    const nuevo = !verCalor;
+    setVerCalor(nuevo);
+    if (nuevo && calor.length === 0) cargarCalor();
+  };
+
   // Transmitir MI ubicación en vivo mientras veo el mapa (el admin la ve en su panel)
   const iniciarGPS = useCallback(async () => {
     try {
@@ -112,12 +125,17 @@ export default function Mapa() {
     <View style={s.root}>
       <View style={s.header}>
         <Text style={s.titulo}>Camiones en vivo</Text>
-        <View style={s.pill}>
-          <View style={[s.dot, { backgroundColor: activos ? colors.success : colors.textMuted }]} />
-          <Text style={s.pillTxt}>{activos} activos</Text>
+        <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+          <TouchableOpacity style={[s.pill, verCalor && { borderColor: colors.danger }]} onPress={alternarCalor}>
+            <Text style={[s.pillTxt, verCalor && { color: colors.danger }]}>🔥 Zonas críticas</Text>
+          </TouchableOpacity>
+          <View style={s.pill}>
+            <View style={[s.dot, { backgroundColor: activos ? colors.success : colors.textMuted }]} />
+            <Text style={s.pillTxt}>{activos} activos</Text>
+          </View>
         </View>
       </View>
-      <MapaOSM centro={CUSCO} zoom={13} marcadores={marcadores} polilineas={lineas} style={{ flex: 1 }} />
+      <MapaOSM centro={CUSCO} zoom={13} marcadores={marcadores} polilineas={lineas} calor={verCalor ? calor : []} style={{ flex: 1 }} />
       {eta && (
         <View style={[s.eta, { borderColor: acento }]}>
           <Text style={s.etaTxt}>{eta}</Text>
