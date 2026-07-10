@@ -4,11 +4,12 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Residuos Cusco · Panel de Administración</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
   :root{
     --bg:#0d1117; --elev:#161b22; --surf:#21262d; --bd:#30363d;
-    --tx:#c9d1d9; --tx2:#8b949e; --pri:#58a6ff; --priD:#1f6feb;
-    --ok:#3fb950; --warn:#d29922; --dang:#f85149;
+    --tx:#c9d1d9; --tx2:#8b949e; --pri:#a371f7; --priD:#8957e5;
+    --ok:#3fb950; --warn:#d29922; --dang:#f85149; --azul:#58a6ff;
   }
   *{box-sizing:border-box}
   body{margin:0;font-family:system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--tx)}
@@ -28,29 +29,44 @@
   .btn{background:var(--priD);color:#fff;border:none;border-radius:8px;padding:12px;width:100%;font-size:15px;font-weight:700;margin-top:18px}
   .btn.sm{width:auto;padding:7px 12px;font-size:13px;margin:0}
   .btn.ghost{background:transparent;border:1px solid var(--bd);color:var(--tx)}
+  .btn.peligro{background:transparent;border:1px solid var(--dang);color:var(--dang)}
+  .btn.okb{background:var(--ok)}
   .err{color:var(--dang);font-size:13px;margin-top:10px;text-align:center}
 
   /* App */
   #app{display:flex;min-height:100vh}
-  aside{width:220px;background:var(--elev);border-right:1px solid var(--bd);padding:18px 12px;display:flex;flex-direction:column;gap:4px}
+  aside{width:230px;background:var(--elev);border-right:1px solid var(--bd);padding:18px 12px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh;overflow:auto}
   .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;padding:8px 10px 16px}
-  nav button{display:block;width:100%;text-align:left;background:transparent;border:none;color:var(--tx2);padding:11px 12px;border-radius:8px;font-size:14px}
+  nav button{display:block;width:100%;text-align:left;background:transparent;border:none;color:var(--tx2);padding:10px 12px;border-radius:8px;font-size:14px}
   nav button.active{background:var(--surf);color:var(--pri);font-weight:600}
-  main{flex:1;padding:24px;overflow:auto}
-  .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+  main{flex:1;padding:24px;overflow:auto;min-width:0}
+  .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:10px;flex-wrap:wrap}
   .top h2{margin:0;font-size:20px}
-  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:8px}
-  .stat{background:var(--elev);border:1px solid var(--bd);border-radius:12px;padding:18px}
-  .stat .n{font-size:30px;font-weight:800;color:var(--pri)}
-  .stat .l{color:var(--tx2);font-size:13px;margin-top:2px}
-  table{width:100%;border-collapse:collapse;background:var(--elev);border:1px solid var(--bd);border-radius:12px;overflow:hidden}
-  th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--bd);font-size:14px}
-  th{color:var(--tx2);font-size:11px;letter-spacing:1px;text-transform:uppercase}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:18px}
+  .stat{background:var(--elev);border:1px solid var(--bd);border-radius:12px;padding:16px}
+  .stat .n{font-size:28px;font-weight:800;color:var(--pri)}
+  .stat .l{color:var(--tx2);font-size:12px;margin-top:2px}
+  .tablaWrap{overflow-x:auto;border-radius:12px;border:1px solid var(--bd)}
+  table{width:100%;border-collapse:collapse;background:var(--elev)}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--bd);font-size:13px;white-space:nowrap}
+  td.wrap{white-space:normal;min-width:180px}
+  th{color:var(--tx2);font-size:11px;letter-spacing:1px;text-transform:uppercase;position:sticky;top:0;background:var(--elev)}
   tr:last-child td{border-bottom:none}
   .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700}
   .row{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:16px}
-  .row .f{flex:1;min-width:140px}
+  .row .f{flex:1;min-width:130px}
   .muted{color:var(--tx2)}
+  .mini{padding:4px 8px;font-size:12px;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--tx)}
+  .mini.rojo{border-color:var(--dang);color:var(--dang)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:900px){.grid2{grid-template-columns:1fr}}
+  .chartBox{background:var(--elev);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:16px}
+  .chartBox h3{margin:0 0 10px;font-size:14px;color:var(--tx2)}
+  #mapaVivo{height:420px;border-radius:12px;border:1px solid var(--bd)}
+  .leyenda{display:flex;gap:16px;font-size:12px;color:var(--tx2);margin-top:8px;flex-wrap:wrap}
+  .buscar{max-width:260px}
+  .rank1{color:gold}.rank2{color:silver}.rank3{color:#cd7f32}
+  @media print{aside,.no-print{display:none!important}body{background:#fff;color:#000}}
 </style>
 </head>
 <body>
@@ -64,7 +80,7 @@
     <label>CORREO</label>
     <input id="email" type="email" placeholder="admin@residuos.cusco.gob.pe" />
     <label>CONTRASEÑA</label>
-    <input id="password" type="password" placeholder="••••••••" />
+    <input id="password" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()" />
     <button class="btn" onclick="login()">Iniciar sesión</button>
     <div id="loginErr" class="err"></div>
   </div>
@@ -75,12 +91,16 @@
   <aside>
     <div class="brand">♻️ Residuos Cusco</div>
     <nav id="nav">
-      <button data-s="resumen" class="active" onclick="go('resumen')">Resumen</button>
-      <button data-s="usuarios" onclick="go('usuarios')">Usuarios</button>
-      <button data-s="zonas" onclick="go('zonas')">Zonas</button>
-      <button data-s="rutas" onclick="go('rutas')">Rutas</button>
-      <button data-s="incidencias" onclick="go('incidencias')">Incidencias</button>
-      <button data-s="residuos" onclick="go('residuos')">Residuos</button>
+      <button data-s="resumen" class="active" onclick="go('resumen')">📊 Resumen</button>
+      <button data-s="usuarios" onclick="go('usuarios')">👥 Usuarios</button>
+      <button data-s="zonas" onclick="go('zonas')">🗺️ Zonas</button>
+      <button data-s="rutas" onclick="go('rutas')">🚛 Rutas</button>
+      <button data-s="horarios" onclick="go('horarios')">🕐 Horarios</button>
+      <button data-s="incidencias" onclick="go('incidencias')">⚠️ Incidencias</button>
+      <button data-s="residuos" onclick="go('residuos')">♻️ Residuos</button>
+      <button data-s="reportes" onclick="go('reportes')">📈 Reportes</button>
+      <button data-s="ranking" onclick="go('ranking')">🏆 Ranking</button>
+      <button data-s="auditoria" onclick="go('auditoria')">📋 Auditoría</button>
     </nav>
     <div style="flex:1"></div>
     <div class="muted" style="font-size:12px;padding:0 10px" id="quien"></div>
@@ -89,10 +109,13 @@
   <main id="main"></main>
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script>
 const API = '/api';
 let token = localStorage.getItem('token') || null;
 let yo = JSON.parse(localStorage.getItem('yo') || 'null');
+let mapaVivo=null, timerVivo=null, charts=[];
 
 async function api(path, opts={}){
   const r = await fetch(API+path, {
@@ -126,89 +149,338 @@ function mostrarApp(){
   go('resumen');
 }
 
+function limpiarVivo(){ if(timerVivo){clearInterval(timerVivo);timerVivo=null;} mapaVivo=null; charts.forEach(c=>{try{c.destroy()}catch(e){}}); charts=[]; }
+
 function go(s){
+  limpiarVivo();
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.s===s));
-  ({resumen:vResumen,usuarios:vUsuarios,zonas:vZonas,rutas:vRutas,incidencias:vIncidencias,residuos:vResiduos})[s]();
+  ({resumen:vResumen,usuarios:vUsuarios,zonas:vZonas,rutas:vRutas,horarios:vHorarios,incidencias:vIncidencias,residuos:vResiduos,reportes:vReportes,ranking:vRanking,auditoria:vAuditoria})[s]();
 }
 const main=()=>document.getElementById('main');
-const esc=(x)=>String(x??'').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
-const estadoColor={PENDIENTE:'var(--warn)',EN_PROGRESO:'var(--ok)',COMPLETADA:'var(--pri)',CANCELADA:'var(--dang)',EN_PROCESO:'var(--pri)',RESUELTO:'var(--ok)'};
-const pill=(t)=>`<span class="pill" style="background:${(estadoColor[t]||'var(--tx2)')}22;color:${estadoColor[t]||'var(--tx2)'}">${t}</span>`;
+const esc=(x)=>String(x??'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+const estadoColor={PENDIENTE:'var(--warn)',EN_PROGRESO:'var(--ok)',COMPLETADA:'var(--azul)',CANCELADA:'var(--dang)',EN_PROCESO:'var(--azul)',RESUELTO:'var(--ok)'};
+const pill=(t)=>`<span class="pill" style="background:${(estadoColor[t]||'var(--tx2)')}22;color:${estadoColor[t]||'var(--tx2)'}">${esc(t)}</span>`;
+const DIAS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const CATS=['ORGANICO','RECICLABLE','NO_RECICLABLE','PELIGROSO'];
+const ROLES=['CIUDADANO','OPERADOR_CAMION','ADMIN_ZONA','ADMIN_MUNICIPAL','SUPER_ADMIN'];
+const PALETA=['#a371f7','#58a6ff','#3fb950','#d29922','#f85149','#8b949e','#ff7b72','#79c0ff'];
 
+// Exportar cualquier tabla de la vista a CSV
+function exportarCSV(nombre){
+  const tabla=document.querySelector('#main table'); if(!tabla)return alert('No hay tabla para exportar');
+  const filas=[...tabla.querySelectorAll('tr')].map(tr=>[...tr.querySelectorAll('th,td')].map(td=>'"'+td.innerText.replace(/"/g,'""').replace(/\n/g,' ')+'"').join(','));
+  const blob=new Blob(['﻿'+filas.join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=nombre+'.csv'; a.click();
+}
+const botonesExportar=(nombre)=>`<span class="no-print"><button class="btn sm ghost" onclick="exportarCSV('${nombre}')">⬇ CSV</button> <button class="btn sm ghost" onclick="window.print()">🖨 Imprimir</button></span>`;
+
+/* ── RESUMEN + MAPA EN VIVO ─────────────────────────────────────────────── */
 async function vResumen(){
-  main().innerHTML='<div class="top"><h2>Resumen</h2></div><div class="cards" id="cards">Cargando…</div>';
+  main().innerHTML=`<div class="top"><h2>Resumen</h2><span class="muted" id="reloj"></span></div>
+  <div class="cards" id="cards">Cargando…</div>
+  <div class="chartBox"><h3>🛰️ Mapa en vivo — camiones, operadores y ciudadanos (se actualiza cada 8 s)</h3>
+    <div id="mapaVivo"></div>
+    <div class="leyenda"><span>🚛 Camión en ruta</span><span>🟣 Ciudadano (en vivo)</span><span>⚪ Ciudadano (última posición)</span><span>— línea: ruta planificada</span></div>
+  </div>`;
   try{
-    const [us,zo,ru,inc]=await Promise.all([api('/usuarios'),api('/zonas'),api('/rutas'),api('/incidentes')]);
-    const activas=ru.filter(r=>r.estado==='EN_PROGRESO').length;
-    const pend=inc.filter(i=>i.estado==='PENDIENTE').length;
+    const d=await api('/reportes/resumen');
     document.getElementById('cards').innerHTML=[
-      ['Usuarios',us.length],['Zonas',zo.length],['Rutas',ru.length],
-      ['Camiones activos',activas],['Incidencias pendientes',pend]
+      ['Usuarios',d.usuarios],['Ciudadanos',d.ciudadanos],['Operadores',d.operadores],['Zonas',d.zonas],
+      ['Rutas',d.rutas],['Camiones activos',d.rutasActivas],['Incidencias pend.',d.incPendientes],['Kg recolectados',d.totalKg.toLocaleString()]
     ].map(([l,n])=>`<div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
-  }catch(e){ document.getElementById('cards').innerHTML='<span class="err">'+e.message+'</span>'; }
+  }catch(e){ document.getElementById('cards').innerHTML='<span class="err">'+esc(e.message)+'</span>'; }
+
+  mapaVivo=L.map('mapaVivo').setView([-13.5226,-71.9673],13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(mapaVivo);
+  const capa=L.layerGroup().addTo(mapaVivo);
+
+  async function refrescarVivo(){
+    try{
+      const [rutas,ubis]=await Promise.all([api('/rutas/activas'),api('/usuarios/ubicaciones')]);
+      capa.clearLayers();
+      for(const r of rutas){
+        (r.paradas||[]).forEach(p=>{ if(p.latitud) L.circleMarker([p.latitud,p.longitud],{radius:6,color:p.atendida?'#3fb950':'#8b949e',fillOpacity:.9}).bindPopup(esc(p.nombre||'Parada')+(p.atendida?' ✅':' ⏳')).addTo(capa); });
+        const pts=(r.paradas||[]).filter(p=>p.latitud).map(p=>[p.latitud,p.longitud]);
+        if(pts.length>1) L.polyline(pts,{color:'#a371f7',dashArray:'8 8',weight:3}).addTo(capa);
+        if(r.latitudActual) L.marker([r.latitudActual,r.longitudActual],{icon:L.divIcon({className:'',html:'<div style="font-size:26px">🚛</div>',iconSize:[30,30]})}).bindPopup('<b>'+esc(r.nombre)+'</b><br>'+esc(r.camionPlaca||'')).addTo(capa);
+        try{
+          const tz=await api('/rutas/'+r._id+'/traza');
+          const tp=tz.map(t=>[t.latitud,t.longitud]);
+          if(tp.length>1) L.polyline(tp,{color:'#3fb950',weight:3,opacity:.8}).addTo(capa);
+        }catch(e){}
+      }
+      for(const u of ubis){
+        if(u.rol==='CIUDADANO'){
+          L.circleMarker([u.latitud,u.longitud],{radius:7,color:u.enVivo?'#a371f7':'#6e7681',fillOpacity:.8})
+            .bindPopup(esc(u.nombre)+(u.enVivo?' · 🟣 EN VIVO':' · última posición')).addTo(capa);
+        }
+      }
+      document.getElementById('reloj').textContent='Actualizado '+new Date().toLocaleTimeString('es-PE');
+    }catch(e){}
+  }
+  refrescarVivo();
+  timerVivo=setInterval(refrescarVivo,8000);
 }
 
+/* ── USUARIOS (CRUD total) ──────────────────────────────────────────────── */
 async function vUsuarios(){
-  main().innerHTML='<div class="top"><h2>Usuarios</h2></div><div id="c">Cargando…</div>';
+  main().innerHTML=`<div class="top"><h2>Usuarios</h2>${botonesExportar('usuarios')}</div>
+  <div class="card" style="margin-bottom:16px"><b>Crear usuario</b>
+    <div class="row" style="margin-top:10px">
+      <div class="f"><label>Nombre</label><input id="un"></div>
+      <div class="f"><label>Email</label><input id="ue"></div>
+      <div class="f"><label>Contraseña</label><input id="up" type="password"></div>
+      <div class="f"><label>Rol</label><select id="ur">${ROLES.map(r=>`<option>${r}</option>`).join('')}</select></div>
+      <div class="f"><label>Zona</label><select id="uz"><option value="">—</option></select></div>
+      <button class="btn sm" onclick="crearUsuario()">Crear</button>
+    </div></div>
+  <div class="row no-print"><input class="buscar" id="filtroU" placeholder="🔍 Buscar por nombre, email o rol…" oninput="filtrarTabla(this.value)"></div>
+  <div class="tablaWrap" id="c">Cargando…</div>`;
   const [us,zo]=await Promise.all([api('/usuarios'),api('/zonas')]);
   const opts=zo.map(z=>`<option value="${z._id}">${esc(z.nombre)}</option>`).join('');
-  document.getElementById('c').innerHTML=`<table><thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Zona</th><th>Asignar zona</th></tr></thead><tbody>${
-    us.map(u=>`<tr><td>${esc(u.nombre)}</td><td>${esc(u.email)}</td><td>${esc(u.rol)}</td><td>${esc(u.zona?.nombre||'—')}</td>
-    <td><select onchange="asignarZona('${u._id}',this.value)"><option value="">—</option>${opts}</select></td></tr>`).join('')
+  document.getElementById('uz').innerHTML='<option value="">—</option>'+opts;
+  document.getElementById('c').innerHTML=`<table><thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Zona</th><th>Activo</th><th>Acciones</th></tr></thead><tbody>${
+    us.map(u=>`<tr><td>${esc(u.nombre)}</td><td>${esc(u.email)}</td>
+    <td><select class="mini" onchange="editarUsuario('${u._id}',{rol:this.value})">${ROLES.map(r=>`<option ${r===u.rol?'selected':''}>${r}</option>`).join('')}</select></td>
+    <td><select class="mini" onchange="editarUsuario('${u._id}',{zona:this.value||null})"><option value="">—</option>${zo.map(z=>`<option value="${z._id}" ${String(u.zona?._id||u.zona)===String(z._id)?'selected':''}>${esc(z.nombre)}</option>`).join('')}</select></td>
+    <td><button class="mini" onclick="editarUsuario('${u._id}',{activo:${!u.activo}})">${u.activo?'✅ Sí':'🚫 No'}</button></td>
+    <td><button class="mini" onclick="resetPass('${u._id}','${esc(u.nombre)}')">🔑 Clave</button>
+        <button class="mini rojo" onclick="eliminarUsuario('${u._id}','${esc(u.nombre)}')">🗑</button></td></tr>`).join('')
   }</tbody></table>`;
 }
-async function asignarZona(uid,zid){ if(!zid)return; await api('/usuarios/'+uid+'/zona/'+zid,{method:'PUT'}); vUsuarios(); }
+function filtrarTabla(q){
+  q=q.toLowerCase();
+  document.querySelectorAll('#main tbody tr').forEach(tr=>{ tr.style.display=tr.innerText.toLowerCase().includes(q)?'':'none'; });
+}
+async function crearUsuario(){
+  const [nombre,email,password,rol,zona]=['un','ue','up','ur','uz'].map(i=>document.getElementById(i).value);
+  if(!nombre||!email||!password)return alert('Nombre, email y contraseña son obligatorios');
+  try{ await api('/usuarios',{method:'POST',body:JSON.stringify({nombre,email,password,rol,zona:zona||null})}); vUsuarios(); }catch(e){alert(e.message)}
+}
+async function editarUsuario(id,patch){ try{ await api('/usuarios/'+id,{method:'PUT',body:JSON.stringify(patch)}); }catch(e){alert(e.message); vUsuarios();} }
+async function resetPass(id,nombre){
+  const p=prompt('Nueva contraseña para '+nombre+' (mín. 6):'); if(!p)return;
+  try{ await api('/usuarios/'+id,{method:'PUT',body:JSON.stringify({password:p})}); alert('Contraseña actualizada'); }catch(e){alert(e.message)}
+}
+async function eliminarUsuario(id,nombre){
+  if(!confirm('¿Eliminar definitivamente a '+nombre+'?'))return;
+  try{ await api('/usuarios/'+id,{method:'DELETE'}); vUsuarios(); }catch(e){alert(e.message)}
+}
 
+/* ── ZONAS ──────────────────────────────────────────────────────────────── */
 async function vZonas(){
-  main().innerHTML='<div class="top"><h2>Zonas</h2></div>'+
-    '<div class="card" style="margin-bottom:16px"><div class="row"><div class="f"><label>Nombre</label><input id="zn"></div><div class="f"><label>Distrito</label><input id="zd"></div><button class="btn sm" onclick="crearZona()">Crear zona</button></div></div>'+
-    '<div id="c">Cargando…</div>';
+  main().innerHTML=`<div class="top"><h2>Zonas</h2>${botonesExportar('zonas')}</div>
+  <div class="card" style="margin-bottom:16px"><div class="row">
+    <div class="f"><label>Nombre</label><input id="zn"></div>
+    <div class="f"><label>Distrito</label><input id="zd"></div>
+    <div class="f"><label>Color</label><input id="zc" type="color" value="#58a6ff" style="height:42px"></div>
+    <button class="btn sm" onclick="crearZona()">Crear zona</button></div></div>
+  <div class="tablaWrap" id="c">Cargando…</div>`;
   const zo=await api('/zonas');
-  document.getElementById('c').innerHTML=`<table><thead><tr><th>Nombre</th><th>Distrito</th><th>Color</th></tr></thead><tbody>${
-    zo.map(z=>`<tr><td>${esc(z.nombre)}</td><td>${esc(z.distrito||'—')}</td><td><span class="pill" style="background:${z.color}33;color:${z.color}">${z.color}</span></td></tr>`).join('')
+  document.getElementById('c').innerHTML=`<table><thead><tr><th>Nombre</th><th>Distrito</th><th>Color</th><th>Acciones</th></tr></thead><tbody>${
+    zo.map(z=>`<tr><td>${esc(z.nombre)}</td><td>${esc(z.distrito||'—')}</td>
+    <td><span class="pill" style="background:${z.color}33;color:${z.color}">${z.color}</span></td>
+    <td><button class="mini" onclick="renombrarZona('${z._id}','${esc(z.nombre)}')">✏️ Editar</button>
+        <button class="mini rojo" onclick="eliminarZona('${z._id}','${esc(z.nombre)}')">🗑</button></td></tr>`).join('')
   }</tbody></table>`;
 }
 async function crearZona(){
-  const nombre=document.getElementById('zn').value.trim(), distrito=document.getElementById('zd').value.trim();
+  const nombre=document.getElementById('zn').value.trim(), distrito=document.getElementById('zd').value.trim(), color=document.getElementById('zc').value;
   if(!nombre)return alert('Nombre requerido');
-  await api('/zonas',{method:'POST',body:JSON.stringify({nombre,distrito})}); vZonas();
+  try{ await api('/zonas',{method:'POST',body:JSON.stringify({nombre,distrito,color})}); vZonas(); }catch(e){alert(e.message)}
+}
+async function renombrarZona(id,actual){
+  const nombre=prompt('Nuevo nombre de la zona:',actual); if(!nombre)return;
+  try{ await api('/zonas/'+id,{method:'PUT',body:JSON.stringify({nombre})}); vZonas(); }catch(e){alert(e.message)}
+}
+async function eliminarZona(id,nombre){
+  if(!confirm('¿Eliminar la zona '+nombre+'?'))return;
+  try{ await api('/zonas/'+id,{method:'DELETE'}); vZonas(); }catch(e){alert(e.message)}
 }
 
+/* ── RUTAS ──────────────────────────────────────────────────────────────── */
 async function vRutas(){
-  main().innerHTML='<div class="top"><h2>Rutas</h2></div>'+
-    '<div class="card" style="margin-bottom:16px"><div class="row"><div class="f"><label>Nombre</label><input id="rn"></div><div class="f"><label>Placa</label><input id="rp"></div><div class="f"><label>Zona</label><select id="rz"></select></div><button class="btn sm" onclick="crearRuta()">Crear ruta</button></div></div>'+
-    '<div id="c">Cargando…</div>';
-  const [ru,zo]=await Promise.all([api('/rutas'),api('/zonas')]);
+  main().innerHTML=`<div class="top"><h2>Rutas</h2>${botonesExportar('rutas')}</div>
+  <div class="card" style="margin-bottom:16px"><b>Crear ruta</b><div class="row" style="margin-top:10px">
+    <div class="f"><label>Nombre</label><input id="rn"></div>
+    <div class="f"><label>Placa</label><input id="rp"></div>
+    <div class="f"><label>Zona</label><select id="rz"></select></div>
+    <div class="f"><label>Operador</label><select id="ro"><option value="">—</option></select></div>
+    <button class="btn sm" onclick="crearRuta()">Crear ruta</button></div>
+    <div class="muted" style="font-size:12px">Las paradas se agregan con el botón 📍 de cada ruta (formato: nombre, lat, lng, hora).</div></div>
+  <div class="tablaWrap" id="c">Cargando…</div>`;
+  const [ru,zo,ops]=await Promise.all([api('/rutas'),api('/zonas'),api('/usuarios/operadores')]);
   document.getElementById('rz').innerHTML=zo.map(z=>`<option value="${z._id}">${esc(z.nombre)}</option>`).join('');
+  document.getElementById('ro').innerHTML='<option value="">—</option>'+ops.map(o=>`<option value="${o._id}">${esc(o.nombre)}</option>`).join('');
   const estados=['PENDIENTE','EN_PROGRESO','COMPLETADA','CANCELADA'];
-  document.getElementById('c').innerHTML=`<table><thead><tr><th>Nombre</th><th>Zona</th><th>Placa</th><th>Estado</th><th>Cambiar</th></tr></thead><tbody>${
-    ru.map(r=>`<tr><td>${esc(r.nombre)}</td><td>${esc(r.zona?.nombre||'—')}</td><td>${esc(r.camionPlaca||'—')}</td><td>${pill(r.estado)}</td>
-    <td><select onchange="estadoRuta('${r._id}',this.value)">${estados.map(e=>`<option ${e===r.estado?'selected':''}>${e}</option>`).join('')}</select></td></tr>`).join('')
+  document.getElementById('c').innerHTML=`<table><thead><tr><th>Nombre</th><th>Zona</th><th>Operador</th><th>Placa</th><th>Paradas</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${
+    ru.map(r=>{
+      const at=(r.paradas||[]).filter(p=>p.atendida).length;
+      return `<tr><td>${esc(r.nombre)}</td><td>${esc(r.zona?.nombre||'—')}</td>
+      <td><select class="mini" onchange="editarRuta('${r._id}',{operador:this.value||null})"><option value="">—</option>${ops.map(o=>`<option value="${o._id}" ${String(r.operador?._id||r.operador)===String(o._id)?'selected':''}>${esc(o.nombre)}</option>`).join('')}</select></td>
+      <td>${esc(r.camionPlaca||'—')}</td><td>${at}/${(r.paradas||[]).length}</td><td>${pill(r.estado)}</td>
+      <td><select class="mini" onchange="estadoRuta('${r._id}',this.value)">${estados.map(e=>`<option ${e===r.estado?'selected':''}>${e}</option>`).join('')}</select>
+          <button class="mini" onclick="agregarParada('${r._id}')">📍 Parada</button>
+          <button class="mini rojo" onclick="eliminarRuta('${r._id}','${esc(r.nombre)}')">🗑</button></td></tr>`;
+    }).join('')
   }</tbody></table>`;
+  window._rutas=ru;
 }
 async function crearRuta(){
-  const nombre=document.getElementById('rn').value.trim(),camionPlaca=document.getElementById('rp').value.trim(),zona=document.getElementById('rz').value;
+  const nombre=document.getElementById('rn').value.trim(),camionPlaca=document.getElementById('rp').value.trim(),zona=document.getElementById('rz').value,operador=document.getElementById('ro').value||null;
   if(!nombre)return alert('Nombre requerido');
-  await api('/rutas',{method:'POST',body:JSON.stringify({nombre,camionPlaca,zona})}); vRutas();
+  try{ await api('/rutas',{method:'POST',body:JSON.stringify({nombre,camionPlaca,zona,operador})}); vRutas(); }catch(e){alert(e.message)}
 }
-async function estadoRuta(id,estado){ await api('/rutas/'+id+'/estado',{method:'PUT',body:JSON.stringify({estado})}); vRutas(); }
+async function editarRuta(id,patch){ try{ await api('/rutas/'+id,{method:'PUT',body:JSON.stringify(patch)}); }catch(e){alert(e.message); vRutas();} }
+async function estadoRuta(id,estado){ try{ await api('/rutas/'+id+'/estado',{method:'PUT',body:JSON.stringify({estado})}); vRutas(); }catch(e){alert(e.message)} }
+async function eliminarRuta(id,nombre){
+  if(!confirm('¿Eliminar la ruta '+nombre+'?'))return;
+  try{ await api('/rutas/'+id,{method:'DELETE'}); vRutas(); }catch(e){alert(e.message)}
+}
+async function agregarParada(id){
+  const txt=prompt('Nueva parada — formato: nombre, latitud, longitud, hora\nEj: Plaza Tupac Amaru, -13.525, -71.955, 07:30');
+  if(!txt)return;
+  const [nombre,lat,lng,hora]=txt.split(',').map(s=>s.trim());
+  if(!nombre||isNaN(parseFloat(lat))||isNaN(parseFloat(lng)))return alert('Formato inválido');
+  const r=(window._rutas||[]).find(x=>x._id===id); if(!r)return;
+  const paradas=[...(r.paradas||[]),{nombre,latitud:parseFloat(lat),longitud:parseFloat(lng),horaEstimada:hora||''}];
+  try{ await api('/rutas/'+id,{method:'PUT',body:JSON.stringify({paradas})}); vRutas(); }catch(e){alert(e.message)}
+}
 
-async function vIncidencias(){
-  main().innerHTML='<div class="top"><h2>Incidencias</h2></div><div id="c">Cargando…</div>';
-  const inc=await api('/incidentes');
-  const estados=['PENDIENTE','EN_PROCESO','RESUELTO'];
-  document.getElementById('c').innerHTML=`<table><thead><tr><th>Tipo</th><th>Descripción</th><th>Ciudadano</th><th>Estado</th><th>Cambiar</th></tr></thead><tbody>${
-    inc.map(i=>`<tr><td>${esc(i.tipo)}</td><td>${esc(i.descripcion)}</td><td>${esc(i.usuario?.nombre||'—')}</td><td>${pill(i.estado)}</td>
-    <td><select onchange="estadoInc('${i._id}',this.value)">${estados.map(e=>`<option ${e===i.estado?'selected':''}>${e}</option>`).join('')}</select></td></tr>`).join('')||'<tr><td colspan=5 class="muted">Sin incidencias</td></tr>'
+/* ── HORARIOS ───────────────────────────────────────────────────────────── */
+async function vHorarios(){
+  main().innerHTML=`<div class="top"><h2>Horarios de recojo</h2>${botonesExportar('horarios')}</div>
+  <div class="card" style="margin-bottom:16px"><div class="row">
+    <div class="f"><label>Zona</label><select id="hz"></select></div>
+    <div class="f"><label>Día</label><select id="hd">${DIAS.map((d,i)=>`<option value="${i}">${d}</option>`).join('')}</select></div>
+    <div class="f"><label>Hora</label><input id="hh" type="time" value="06:00"></div>
+    <div class="f"><label>Tipo de residuo</label><select id="ht">${CATS.map(c=>`<option>${c}</option>`).join('')}</select></div>
+    <button class="btn sm" onclick="crearHorario()">Agregar</button></div></div>
+  <div class="tablaWrap" id="c">Cargando…</div>`;
+  const [hs,zo]=await Promise.all([api('/horarios'),api('/zonas')]);
+  document.getElementById('hz').innerHTML=zo.map(z=>`<option value="${z._id}">${esc(z.nombre)}</option>`).join('');
+  document.getElementById('c').innerHTML=`<table><thead><tr><th>Zona</th><th>Día</th><th>Hora</th><th>Residuo</th><th></th></tr></thead><tbody>${
+    hs.map(h=>`<tr><td>${esc(h.zona?.nombre||'—')}</td><td>${DIAS[h.diaSemana]}</td><td>${esc(h.hora)}</td><td>${esc(h.tipoResiduo)}</td>
+    <td><button class="mini rojo" onclick="eliminarHorario('${h._id}')">🗑</button></td></tr>`).join('')||'<tr><td colspan=5 class="muted">Sin horarios</td></tr>'
   }</tbody></table>`;
 }
-async function estadoInc(id,estado){ await api('/incidentes/'+id+'/estado',{method:'PUT',body:JSON.stringify({estado})}); vIncidencias(); }
+async function crearHorario(){
+  const zona=document.getElementById('hz').value, diaSemana=parseInt(document.getElementById('hd').value), hora=document.getElementById('hh').value, tipoResiduo=document.getElementById('ht').value;
+  try{ await api('/horarios',{method:'POST',body:JSON.stringify({zona,diaSemana,hora,tipoResiduo})}); vHorarios(); }catch(e){alert(e.message)}
+}
+async function eliminarHorario(id){ if(!confirm('¿Eliminar horario?'))return; try{ await api('/horarios/'+id,{method:'DELETE'}); vHorarios(); }catch(e){alert(e.message)} }
 
+/* ── INCIDENCIAS ────────────────────────────────────────────────────────── */
+async function vIncidencias(){
+  main().innerHTML=`<div class="top"><h2>Incidencias</h2>${botonesExportar('incidencias')}</div>
+  <div class="row no-print"><input class="buscar" placeholder="🔍 Filtrar…" oninput="filtrarTabla(this.value)"></div>
+  <div class="tablaWrap" id="c">Cargando…</div>`;
+  const inc=await api('/incidentes');
+  const estados=['PENDIENTE','EN_PROCESO','RESUELTO'];
+  document.getElementById('c').innerHTML=`<table><thead><tr><th>Fecha</th><th>Tipo</th><th>Descripción</th><th>Ciudadano</th><th>Zona</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${
+    inc.map(i=>`<tr><td>${new Date(i.createdAt).toLocaleDateString('es-PE')}</td><td>${esc(i.tipo)}</td><td class="wrap">${esc(i.descripcion)}</td><td>${esc(i.usuario?.nombre||'—')}</td><td>${esc(i.zona?.nombre||'—')}</td><td>${pill(i.estado)}</td>
+    <td><select class="mini" onchange="estadoInc('${i._id}',this.value)">${estados.map(e=>`<option ${e===i.estado?'selected':''}>${e}</option>`).join('')}</select>
+        <button class="mini rojo" onclick="eliminarInc('${i._id}')">🗑</button></td></tr>`).join('')||'<tr><td colspan=7 class="muted">Sin incidencias</td></tr>'
+  }</tbody></table>`;
+}
+async function estadoInc(id,estado){ try{ await api('/incidentes/'+id+'/estado',{method:'PUT',body:JSON.stringify({estado})}); vIncidencias(); }catch(e){alert(e.message)} }
+async function eliminarInc(id){ if(!confirm('¿Eliminar incidencia?'))return; try{ await api('/incidentes/'+id,{method:'DELETE'}); vIncidencias(); }catch(e){alert(e.message)} }
+
+/* ── RESIDUOS ───────────────────────────────────────────────────────────── */
 async function vResiduos(){
-  main().innerHTML='<div class="top"><h2>Tipos de residuo</h2></div><div id="c">Cargando…</div>';
-  const re=await api('/residuos');
-  document.getElementById('c').innerHTML=`<table><thead><tr><th>Nombre</th><th>Categoría</th><th>Ejemplos</th></tr></thead><tbody>${
-    re.map(r=>`<tr><td>${esc(r.nombre)}</td><td>${esc(r.categoria)}</td><td class="muted">${esc((r.ejemplos||[]).join(', '))}</td></tr>`).join('')
+  main().innerHTML=`<div class="top"><h2>Tipos de residuo</h2>${botonesExportar('residuos')}</div>
+  <div class="card" style="margin-bottom:16px"><b>Registrar recolección (kg)</b><div class="row" style="margin-top:10px">
+    <div class="f"><label>Zona</label><select id="wz"></select></div>
+    <div class="f"><label>Categoría</label><select id="wc">${CATS.map(c=>`<option>${c}</option>`).join('')}</select></div>
+    <div class="f"><label>Peso (kg)</label><input id="wk" type="number" min="1"></div>
+    <button class="btn sm okb" onclick="registrarKg()">Registrar</button></div></div>
+  <div class="card" style="margin-bottom:16px"><b>Nuevo tipo (catálogo)</b><div class="row" style="margin-top:10px">
+    <div class="f"><label>Nombre</label><input id="wn"></div>
+    <div class="f"><label>Categoría</label><select id="wc2">${CATS.map(c=>`<option>${c}</option>`).join('')}</select></div>
+    <div class="f"><label>Descripción</label><input id="wd"></div>
+    <button class="btn sm" onclick="crearResiduo()">Crear</button></div></div>
+  <div class="tablaWrap" id="c">Cargando…</div>`;
+  const [re,zo]=await Promise.all([api('/residuos'),api('/zonas')]);
+  document.getElementById('wz').innerHTML=zo.map(z=>`<option value="${z._id}">${esc(z.nombre)}</option>`).join('');
+  document.getElementById('c').innerHTML=`<table><thead><tr><th>Nombre</th><th>Categoría</th><th>Ejemplos</th><th></th></tr></thead><tbody>${
+    re.map(r=>`<tr><td>${esc(r.nombre)}</td><td>${esc(r.categoria)}</td><td class="muted wrap">${esc((r.ejemplos||[]).join(', '))}</td>
+    <td><button class="mini rojo" onclick="eliminarResiduo('${r._id}')">🗑</button></td></tr>`).join('')
+  }</tbody></table>`;
+}
+async function registrarKg(){
+  const zona=document.getElementById('wz').value, categoria=document.getElementById('wc').value, pesoKg=parseFloat(document.getElementById('wk').value);
+  if(!pesoKg)return alert('Ingresa el peso');
+  try{ await api('/residuos/recoleccion',{method:'POST',body:JSON.stringify({zona,categoria,pesoKg})}); alert('Recolección registrada'); }catch(e){alert(e.message)}
+}
+async function crearResiduo(){
+  const nombre=document.getElementById('wn').value.trim(), categoria=document.getElementById('wc2').value, descripcion=document.getElementById('wd').value.trim();
+  if(!nombre)return alert('Nombre requerido');
+  try{ await api('/residuos',{method:'POST',body:JSON.stringify({nombre,categoria,descripcion})}); vResiduos(); }catch(e){alert(e.message)}
+}
+async function eliminarResiduo(id){ if(!confirm('¿Eliminar del catálogo?'))return; try{ await api('/residuos/'+id,{method:'DELETE'}); vResiduos(); }catch(e){alert(e.message)} }
+
+/* ── REPORTES (gráficos + export) ───────────────────────────────────────── */
+function mkChart(id,tipo,labels,datos,titulo){
+  const c=new Chart(document.getElementById(id),{
+    type:tipo,
+    data:{labels,datasets:[{label:titulo,data:datos,backgroundColor:PALETA,borderColor:'#a371f7',borderWidth:tipo==='line'?2:0,fill:false,tension:.3}]},
+    options:{plugins:{legend:{display:tipo!=='bar',labels:{color:'#c9d1d9'}}},scales:tipo==='pie'?{}:{x:{ticks:{color:'#8b949e'},grid:{color:'#30363d'}},y:{ticks:{color:'#8b949e'},grid:{color:'#30363d'}}}}
+  });
+  charts.push(c);
+}
+async function vReportes(){
+  main().innerHTML=`<div class="top"><h2>Reportes y estadísticas</h2><span class="no-print"><button class="btn sm ghost" onclick="window.print()">🖨 Imprimir / PDF</button></span></div>
+  <div class="grid2">
+    <div class="chartBox"><h3>Kg recolectados por zona</h3><canvas id="chZona"></canvas></div>
+    <div class="chartBox"><h3>Kg por tipo de contaminante</h3><canvas id="chCat"></canvas></div>
+    <div class="chartBox"><h3>Incidencias por zona</h3><canvas id="chIncZona"></canvas></div>
+    <div class="chartBox"><h3>Incidencias por estado</h3><canvas id="chIncEst"></canvas></div>
+    <div class="chartBox"><h3>Participación ciudadana (reportes por mes)</h3><canvas id="chPart"></canvas></div>
+    <div class="chartBox"><h3>Cumplimiento de rutas (paradas atendidas)</h3><canvas id="chCump"></canvas></div>
+  </div>
+  <div class="top"><h3 style="margin:0">Detalle de cumplimiento de rutas</h3>${botonesExportar('cumplimiento_rutas')}</div>
+  <div class="tablaWrap" id="tCump">Cargando…</div>`;
+  try{
+    const [rec,inc,cum,par]=await Promise.all([
+      api('/reportes/recolectado'),api('/reportes/incidencias'),api('/reportes/cumplimiento'),api('/reportes/participacion')
+    ]);
+    mkChart('chZona','bar',rec.porZona.map(x=>x.zona),rec.porZona.map(x=>x.totalKg),'kg');
+    mkChart('chCat','pie',rec.porCategoria.map(x=>x._id),rec.porCategoria.map(x=>x.totalKg),'kg');
+    mkChart('chIncZona','bar',inc.porZona.map(x=>x.zona),inc.porZona.map(x=>x.total),'incidencias');
+    mkChart('chIncEst','pie',inc.porEstado.map(x=>x._id),inc.porEstado.map(x=>x.total),'estado');
+    mkChart('chPart','line',par.reportesPorMes.map(x=>x._id.mes+'/'+x._id.anio),par.reportesPorMes.map(x=>x.total),'reportes');
+    mkChart('chCump','bar',cum.detalle.map(x=>x.nombre),cum.detalle.map(x=>x.cumplimiento),'% cumplimiento');
+    document.getElementById('tCump').innerHTML=`<table><thead><tr><th>Ruta</th><th>Zona</th><th>Operador</th><th>Estado</th><th>Paradas</th><th>% Cumpl.</th></tr></thead><tbody>${
+      cum.detalle.map(r=>`<tr><td>${esc(r.nombre)}</td><td>${esc(r.zona)}</td><td>${esc(r.operador)}</td><td>${pill(r.estado)}</td><td>${r.paradasAtendidas}/${r.paradasTotal}</td><td>${r.cumplimiento}%</td></tr>`).join('')
+    }</tbody></table>`;
+  }catch(e){ main().insertAdjacentHTML('beforeend','<div class="err">'+esc(e.message)+'</div>'); }
+}
+
+/* ── RANKING ────────────────────────────────────────────────────────────── */
+async function vRanking(){
+  main().innerHTML=`<div class="top"><h2>🏆 Ranking de zonas más limpias</h2>${botonesExportar('ranking')}</div>
+  <p class="muted">Índice 0-100 según incidencias resueltas, cumplimiento de rutas y reportes pendientes. Visible también para los ciudadanos.</p>
+  <div class="tablaWrap" id="c">Cargando…</div>`;
+  const rk=await api('/reportes/ranking');
+  const medalla=(i)=>i===0?'<span class="rank1">🥇</span>':i===1?'<span class="rank2">🥈</span>':i===2?'<span class="rank3">🥉</span>':(i+1)+'.';
+  document.getElementById('c').innerHTML=`<table><thead><tr><th>#</th><th>Zona</th><th>Distrito</th><th>Puntaje</th><th>Incidencias</th><th>Resueltas</th><th>Cumplimiento</th><th>Ciudadanos</th></tr></thead><tbody>${
+    rk.map((r,i)=>`<tr><td>${medalla(i)}</td><td><span class="pill" style="background:${r.color}33;color:${r.color}">${esc(r.zona)}</span></td><td>${esc(r.distrito)}</td>
+    <td><b style="color:${r.puntaje>=70?'var(--ok)':r.puntaje>=40?'var(--warn)':'var(--dang)'}">${r.puntaje}</b>/100</td>
+    <td>${r.incidencias}</td><td>${r.resueltas}</td><td>${r.cumplimiento}%</td><td>${r.ciudadanos}</td></tr>`).join('')
+  }</tbody></table>`;
+}
+
+/* ── AUDITORÍA ──────────────────────────────────────────────────────────── */
+async function vAuditoria(){
+  main().innerHTML=`<div class="top"><h2>Auditoría</h2>${botonesExportar('auditoria')}</div>
+  <p class="muted">Registro de quién creó, editó o eliminó qué (últimas 200 acciones).</p>
+  <div class="tablaWrap" id="c">Cargando…</div>`;
+  const au=await api('/auditoria');
+  const col={CREAR:'var(--ok)',EDITAR:'var(--warn)',ELIMINAR:'var(--dang)'};
+  document.getElementById('c').innerHTML=`<table><thead><tr><th>Fecha</th><th>Actor</th><th>Acción</th><th>Entidad</th><th>Detalle</th></tr></thead><tbody>${
+    au.map(a=>`<tr><td>${new Date(a.createdAt).toLocaleString('es-PE')}</td><td>${esc(a.actorNombre||'—')}</td>
+    <td><span class="pill" style="background:${col[a.accion]}22;color:${col[a.accion]}">${a.accion}</span></td>
+    <td>${esc(a.entidad)}</td><td class="wrap muted">${esc(a.detalle||'')}</td></tr>`).join('')||'<tr><td colspan=5 class="muted">Sin registros aún</td></tr>'
   }</tbody></table>`;
 }
 

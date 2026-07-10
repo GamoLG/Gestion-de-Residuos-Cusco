@@ -38,6 +38,7 @@ Si no existe el archivo `backend/.env`, créalo:
 MONGODB_URI=mongodb+srv://<usuario>:<password>@<cluster>.mongodb.net/miresiduos?retryWrites=true&w=majority
 JWT_SECRET=una-cadena-secreta-larga
 DNI_API_TOKEN=<token-de-apisperu>   # opcional
+GEMINI_API_KEY=<clave-de-aistudio.google.com>   # opcional: IA (chatbot + clasificar foto)
 PORT=4000
 ```
 

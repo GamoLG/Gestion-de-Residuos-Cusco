@@ -10,6 +10,8 @@ export interface Usuario {
   dni?: string;
   telefono?: string;
   direccion?: string;
+  latitud?: number | null;
+  longitud?: number | null;
   zonaId?: string | null;
   zonaNombre?: string | null;
 }
@@ -23,6 +25,7 @@ interface AuthCtx {
   login: (email: string, password: string) => Promise<void>;
   loginConGoogle: (idToken: string) => Promise<void>;
   registrar: (data: Record<string, unknown>) => Promise<void>;
+  actualizarUsuario: (u: Partial<Usuario>) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -67,6 +70,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await guardar(data.data.token, data.data.usuario);
   }, []);
 
+  // Actualiza los datos del usuario en memoria y en el almacenamiento seguro
+  const actualizarUsuario = useCallback(async (patch: Partial<Usuario>) => {
+    setUsuario((prev) => {
+      const nuevo = prev ? { ...prev, ...patch } : prev;
+      if (nuevo) SecureStore.setItemAsync('usuario', JSON.stringify(nuevo)).catch(() => {});
+      return nuevo;
+    });
+  }, []);
+
   const logout = useCallback(async () => {
     await SecureStore.deleteItemAsync('token');
     await SecureStore.deleteItemAsync('usuario');
@@ -83,6 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login,
     loginConGoogle,
     registrar,
+    actualizarUsuario,
     logout,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

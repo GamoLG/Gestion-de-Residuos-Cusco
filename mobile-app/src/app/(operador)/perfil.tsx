@@ -1,5 +1,5 @@
 import { PerfilView } from '../../components/PerfilView';
 
-export default function Perfil() {
+export default function PerfilOperador() {
   return <PerfilView />;
 }

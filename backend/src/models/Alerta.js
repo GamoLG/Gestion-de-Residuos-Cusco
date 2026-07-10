@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-export const TIPOS_ALERTA = ['PROXIMIDAD', 'RETRASO', 'INCIDENCIA', 'SISTEMA'];
+export const TIPOS_ALERTA = ['PROXIMIDAD', 'LLEGADA', 'PASO', 'RETRASO', 'INCIDENCIA', 'SISTEMA'];
 
 const alertaSchema = new mongoose.Schema(
   {

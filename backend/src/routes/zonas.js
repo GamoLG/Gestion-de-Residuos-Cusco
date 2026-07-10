@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import Zona from '../models/Zona.js';
+import { auditar } from '../models/Auditoria.js';
 import { autenticar, permitir } from '../middleware/auth.js';
 import { ok, fail } from '../utils.js';
 
@@ -28,6 +29,7 @@ router.post('/detect', async (req, res) => {
 // POST /api/zonas  (admin)
 router.post('/', autenticar, permitir('ADMIN_ZONA', 'ADMIN_MUNICIPAL', 'SUPER_ADMIN'), async (req, res) => {
   const zona = await Zona.create(req.body);
+  await auditar(req, 'CREAR', 'Zona', zona._id, zona.nombre);
   return ok(res, zona, 'Zona creada', 201);
 });
 
@@ -35,7 +37,16 @@ router.post('/', autenticar, permitir('ADMIN_ZONA', 'ADMIN_MUNICIPAL', 'SUPER_AD
 router.put('/:id', autenticar, permitir('ADMIN_ZONA', 'ADMIN_MUNICIPAL', 'SUPER_ADMIN'), async (req, res) => {
   const zona = await Zona.findByIdAndUpdate(req.params.id, req.body, { new: true });
   if (!zona) return fail(res, 'Zona no encontrada', 404);
+  await auditar(req, 'EDITAR', 'Zona', zona._id, zona.nombre);
   return ok(res, zona, 'Zona actualizada');
+});
+
+// DELETE /api/zonas/:id  (admin municipal/super) — desactivación lógica
+router.delete('/:id', autenticar, permitir('ADMIN_MUNICIPAL', 'SUPER_ADMIN'), async (req, res) => {
+  const zona = await Zona.findByIdAndUpdate(req.params.id, { activo: false }, { new: true });
+  if (!zona) return fail(res, 'Zona no encontrada', 404);
+  await auditar(req, 'ELIMINAR', 'Zona', zona._id, zona.nombre);
+  return ok(res, null, 'Zona eliminada');
 });
 
 export default router;

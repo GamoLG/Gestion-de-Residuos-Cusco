@@ -20,6 +20,8 @@ const rutaSchema = new mongoose.Schema(
         latitud: Number,
         longitud: Number,
         horaEstimada: String,
+        atendida: { type: Boolean, default: false },
+        horaAtencion: Date,
       },
     ],
     distanciaKm: { type: Number, default: 0 },

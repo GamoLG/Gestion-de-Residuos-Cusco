@@ -15,5 +15,7 @@ export default function Index() {
   }
 
   if (!usuario) return <Redirect href="/login" />;
+  // Cada rol entra a su propia interfaz
+  if (usuario.rol === 'OPERADOR_CAMION') return <Redirect href="/(operador)/jornada" />;
   return <Redirect href="/(tabs)/home" />;
 }

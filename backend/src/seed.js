@@ -5,6 +5,8 @@ import Usuario from './models/Usuario.js';
 import Zona from './models/Zona.js';
 import Ruta from './models/Ruta.js';
 import Residuo from './models/Residuo.js';
+import Horario from './models/Horario.js';
+import Incidente from './models/Incidente.js';
 import mongoose from 'mongoose';
 
 function caja(lngMin, latMin, lngMax, latMax) {
@@ -115,6 +117,62 @@ async function main() {
     { upsert: true }
   );
   console.log('✓ rutas: 2');
+
+  // ── Horarios de recojo por zona ───────────────────────────────────────────
+  // diaSemana: 0=Domingo … 6=Sábado
+  const horariosDef = [
+    { zona: 'Centro Histórico', diaSemana: 1, hora: '06:00', tipoResiduo: 'NO_RECICLABLE' },
+    { zona: 'Centro Histórico', diaSemana: 3, hora: '06:00', tipoResiduo: 'ORGANICO' },
+    { zona: 'Centro Histórico', diaSemana: 5, hora: '06:00', tipoResiduo: 'RECICLABLE' },
+    { zona: 'San Blas', diaSemana: 2, hora: '07:00', tipoResiduo: 'NO_RECICLABLE' },
+    { zona: 'San Blas', diaSemana: 4, hora: '07:00', tipoResiduo: 'RECICLABLE' },
+    { zona: 'Wanchaq', diaSemana: 1, hora: '14:00', tipoResiduo: 'NO_RECICLABLE' },
+    { zona: 'Wanchaq', diaSemana: 3, hora: '14:00', tipoResiduo: 'ORGANICO' },
+    { zona: 'Wanchaq', diaSemana: 6, hora: '08:00', tipoResiduo: 'RECICLABLE' },
+    { zona: 'Santiago', diaSemana: 2, hora: '06:30', tipoResiduo: 'NO_RECICLABLE' },
+    { zona: 'Santiago', diaSemana: 5, hora: '06:30', tipoResiduo: 'ORGANICO' },
+    { zona: 'San Sebastián', diaSemana: 1, hora: '08:00', tipoResiduo: 'NO_RECICLABLE' },
+    { zona: 'San Sebastián', diaSemana: 4, hora: '08:00', tipoResiduo: 'RECICLABLE' },
+  ];
+  for (const h of horariosDef) {
+    const zonaId = zonas[h.zona]._id;
+    await Horario.findOneAndUpdate(
+      { zona: zonaId, diaSemana: h.diaSemana, hora: h.hora },
+      { ...h, zona: zonaId, activo: true },
+      { upsert: true }
+    );
+  }
+  console.log('✓ horarios:', horariosDef.length);
+
+  // ── Registros de recolección (para reportes/estadísticas) ────────────────
+  const hoy = new Date();
+  const mes = hoy.getMonth() + 1, anio = hoy.getFullYear();
+  const recolecciones = [
+    ['Centro Histórico', 'ORGANICO', 1250], ['Centro Histórico', 'RECICLABLE', 640], ['Centro Histórico', 'NO_RECICLABLE', 2100],
+    ['San Blas', 'ORGANICO', 480], ['San Blas', 'RECICLABLE', 310],
+    ['Wanchaq', 'ORGANICO', 980], ['Wanchaq', 'NO_RECICLABLE', 1500], ['Wanchaq', 'PELIGROSO', 45],
+    ['Santiago', 'NO_RECICLABLE', 1750], ['Santiago', 'RECICLABLE', 220],
+    ['San Sebastián', 'ORGANICO', 860], ['San Sebastián', 'NO_RECICLABLE', 1320],
+  ];
+  for (const [z, cat, kg] of recolecciones) {
+    await Residuo.findOneAndUpdate(
+      { nombre: `Recolección ${cat} ${z}`, mes, anio },
+      { nombre: `Recolección ${cat} ${z}`, categoria: cat, zona: zonas[z]._id, pesoKg: kg, mes, anio, activo: false },
+      { upsert: true }
+    );
+  }
+  console.log('✓ recolecciones:', recolecciones.length);
+
+  // ── Incidencias de ejemplo (para el ranking y reportes) ───────────────────
+  const ciud1 = await Usuario.findOne({ email: 'ciudadano1@gmail.com' });
+  if (ciud1 && (await Incidente.countDocuments()) === 0) {
+    await Incidente.insertMany([
+      { tipo: 'BASURA_ACUMULADA', descripcion: 'Basura acumulada en la esquina de la plaza', latitud: -13.5170, longitud: -71.9790, usuario: ciud1._id, zona: zonas['Centro Histórico']._id, estado: 'RESUELTO' },
+      { tipo: 'RECOLECCION_NO_REALIZADA', descripcion: 'El camión no pasó este lunes', latitud: -13.5410, longitud: -71.9510, usuario: ciud1._id, zona: zonas['Wanchaq']._id, estado: 'PENDIENTE' },
+      { tipo: 'CONTENEDOR_DANADO', descripcion: 'Contenedor con la tapa rota', latitud: -13.5340, longitud: -72.0040, usuario: ciud1._id, zona: zonas['Santiago']._id, estado: 'EN_PROCESO' },
+    ]);
+    console.log('✓ incidencias de ejemplo: 3');
+  }
 
   console.log('\n══════════════════════════════════');
   console.log(' Seed completado. Credenciales:');

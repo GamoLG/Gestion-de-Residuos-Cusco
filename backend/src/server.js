@@ -15,10 +15,14 @@ import residuosRoutes from './routes/residuos.js';
 import alertasRoutes from './routes/alertas.js';
 import usuariosRoutes from './routes/usuarios.js';
 import dniRoutes from './routes/dni.js';
+import horariosRoutes from './routes/horarios.js';
+import reportesRoutes from './routes/reportes.js';
+import iaRoutes from './routes/ia.js';
+import auditoriaRoutes from './routes/auditoria.js';
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: '5mb' }));
+app.use(express.json({ limit: '15mb' })); // fotos en base64 (incidencias / clasificación IA)
 
 app.get('/api/health', (_req, res) => res.json({ success: true, data: { estado: 'ok' } }));
 
@@ -33,6 +37,10 @@ app.use('/api/residuos', residuosRoutes);
 app.use('/api/alertas', alertasRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/dni', dniRoutes);
+app.use('/api/horarios', horariosRoutes);
+app.use('/api/reportes', reportesRoutes);
+app.use('/api/ia', iaRoutes);
+app.use('/api/auditoria', auditoriaRoutes);
 
 const PORT = process.env.PORT || 4000;
 connectDB()

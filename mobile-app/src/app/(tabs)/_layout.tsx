@@ -1,15 +1,17 @@
 import { Tabs } from 'expo-router';
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors } from '../../lib/theme';
+import { useAuth } from '../../lib/auth';
+import { colors, acentoDe } from '../../lib/theme';
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
+  const { usuario } = useAuth();
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.primary,
+        tabBarActiveTintColor: acentoDe(usuario?.rol),
         tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: {
           backgroundColor: colors.bgElevated,
@@ -29,6 +31,10 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="mapa"
         options={{ title: 'Mapa', tabBarIcon: ({ color, size }) => <Feather name="map" size={size} color={color} /> }}
+      />
+      <Tabs.Screen
+        name="horarios"
+        options={{ title: 'Horarios', tabBarIcon: ({ color, size }) => <Feather name="clock" size={size} color={color} /> }}
       />
       <Tabs.Screen
         name="incidencias"

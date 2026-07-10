@@ -18,6 +18,9 @@ const usuarioSchema = new mongoose.Schema(
     direccion: { type: String, trim: true },
     latitud: Number,
     longitud: Number,
+    ubicacionActualizada: Date, // última vez que reportó su posición (en vivo)
+    foto: { type: String, default: null },
+    ultimoAcceso: Date,
     rol: { type: String, enum: ROLES, default: 'CIUDADANO' },
     zona: { type: mongoose.Schema.Types.ObjectId, ref: 'Zona', default: null },
     activo: { type: Boolean, default: true },

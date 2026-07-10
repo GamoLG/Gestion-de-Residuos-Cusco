@@ -11,6 +11,7 @@ export default function Home() {
   const router = useRouter();
   const [rutas, setRutas] = useState<any[]>([]);
   const [activas, setActivas] = useState(0);
+  const [alerta, setAlerta] = useState<any | null>(null);
   const [refrescando, setRefrescando] = useState(false);
 
   const cargar = useCallback(async () => {
@@ -19,6 +20,11 @@ export default function Home() {
       const lista = data.data || [];
       setRutas(lista);
       setActivas(lista.filter((r: any) => r.estado === 'EN_PROGRESO').length);
+    } catch {}
+    try {
+      const { data } = await api.get('/alertas/mias');
+      const noLeida = (data.data || []).find((a: any) => !a.leida);
+      setAlerta(noLeida || null);
     } catch {}
   }, []);
 
@@ -37,6 +43,16 @@ export default function Home() {
         {usuario?.zonaNombre ? `Zona: ${usuario.zonaNombre}` : 'Zona pendiente de asignación'}
       </Text>
 
+      {alerta && (
+        <TouchableOpacity style={s.alertaBanner} onPress={() => router.push('/(tabs)/horarios')} activeOpacity={0.85}>
+          <Feather name="bell" size={18} color={colors.warning} />
+          <View style={{ flex: 1 }}>
+            <Text style={s.alertaT}>{alerta.titulo || 'Aviso'}</Text>
+            <Text style={s.alertaM} numberOfLines={2}>{alerta.mensaje}</Text>
+          </View>
+        </TouchableOpacity>
+      )}
+
       <View style={s.statsRow}>
         <View style={s.stat}>
           <Text style={s.statNum}>{activas}</Text>
@@ -51,6 +67,11 @@ export default function Home() {
       <TouchableOpacity style={s.cta} onPress={() => router.push('/(tabs)/mapa')} activeOpacity={0.85}>
         <Feather name="map-pin" size={20} color={colors.white} />
         <Text style={s.ctaTxt}>Ver camiones en el mapa</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={s.ctaGhost} onPress={() => router.push('/chatbot')} activeOpacity={0.85}>
+        <MaterialCommunityIcons name="robot-outline" size={20} color={colors.primary} />
+        <Text style={s.ctaGhostTxt}>Asistente virtual · ¿En qué te ayudo?</Text>
       </TouchableOpacity>
 
       <Text style={s.secTitle}>Rutas de recolección</Text>
@@ -85,6 +106,11 @@ const s = StyleSheet.create({
   statLbl: { color: colors.textSecondary, fontSize: 12, marginTop: 2 },
   cta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, backgroundColor: colors.primaryDark, borderRadius: radius.md, height: 52, marginTop: spacing.lg },
   ctaTxt: { color: colors.white, fontSize: 16, fontWeight: '700' },
+  ctaGhost: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, borderWidth: 1, borderColor: colors.primary, borderRadius: radius.md, height: 48, marginTop: spacing.sm },
+  ctaGhostTxt: { color: colors.primary, fontSize: 14, fontWeight: '700' },
+  alertaBanner: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.warning + '18', borderWidth: 1, borderColor: colors.warning, borderRadius: radius.md, padding: spacing.md, marginTop: spacing.lg },
+  alertaT: { color: colors.textPrimary, fontSize: 14, fontWeight: '700' },
+  alertaM: { color: colors.textSecondary, fontSize: 12, marginTop: 2 },
   secTitle: { color: colors.textPrimary, fontSize: 16, fontWeight: '700', marginTop: spacing.xl, marginBottom: spacing.sm },
   vacio: { color: colors.textMuted, fontSize: 14 },
   ruta: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bgElevated, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: spacing.md, marginBottom: spacing.sm },
