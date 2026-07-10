@@ -6,12 +6,19 @@ Sistema integral para la **gestión y monitoreo de la recolección de residuos s
 - 🖥️ **Dashboard web** — administración municipal
 - ☁️ **API REST + base de datos** en la nube
 
-### ✨ Funcionalidades de la app móvil
-- Inicio de sesión y **registro** (con mapa de ubicación + GPS y autocompletado por **DNI**)
-- **Recuperar contraseña** (correo + DNI)
-- Botón **Continuar con Google** (se activa al configurar credenciales)
-- **Inicio**, **Mapa** (camiones en vivo), **Incidencias**, **Segregar** (guía de residuos) y **Perfil**
-- Tema oscuro/azul, ícono propio (símbolo de reciclaje) y barra de navegación adaptada al dispositivo
+### ✨ Funcionalidades (Entrega 3)
+- **Interfaces por rol con color propio:** ciudadano (azul), operador/conductor (verde), admin (morado)
+- **Geolocalización en tiempo real:** el conductor transmite su GPS y el camión 🚛 se ve moverse
+  en vivo (recorrido real + ruta planificada + paradas atendidas/pendientes)
+- **Avisos automáticos por geocercas:** 🔔 próximo (con ETA) · ✅ llegó · ⏭️ ya pasó
+- **Horarios de recojo por zona** + próxima recolección + centro de avisos
+- **Incidencias con foto** (cámara/galería) + GPS y **mapa de calor de zonas críticas** 🔥
+- **IA (Google Gemini):** chatbot de segregación y **clasificación de residuo por foto**
+- **Chatbot navegador** (te lleva a la pantalla correcta) y **soporte por WhatsApp**
+- **Editar perfil** y cambiar contraseña (todos los roles)
+- **Dashboard admin:** CRUD total, mapa en vivo, reportes con gráficos, exportación CSV/impresión,
+  🏆 ranking de zonas más limpias y auditoría
+- Registro con GPS + autocompletado por **DNI (RENIEC)**, recuperación de contraseña, login con Google (backend listo)
 
 > Curso **IF614 – Ingeniería de Software I** · Escuela Profesional de Ing. Informática y de Sistemas · **UNSAAC** · 2026-1
 > Metodología: **SCRUM** · Atributo del graduado: **AG-C01**
@@ -141,11 +148,11 @@ MiResiduosCusco/
 | RF-09 | Gestión de rutas por el administrador | ✅ |
 | RF-10 | Consulta de rutas/horarios (móvil) | ✅ |
 | RF-11 | Reporte ciudadano de incidencias (GPS) | ✅ |
-| RF-12 | Notificación de cercanía del camión | 🟡 Parcial |
-| RF-13 | Alertas de retraso/incidencias | 🟡 Parcial |
+| RF-12 | Notificación de cercanía del camión (geocercas + ETA) | ✅ |
+| RF-13 | Alertas de retraso/incidencias | ✅ |
 | RF-14 | Reporte de residuos por zona | ✅ |
-| RF-15 | Reporte de cumplimiento de rutas | 🟡 Parcial |
-| RF-16 | Reporte de participación ciudadana | 🟡 Parcial |
+| RF-15 | Reporte de cumplimiento de rutas | ✅ |
+| RF-16 | Reporte de participación ciudadana | ✅ |
 
 ### Requisitos No Funcionales
 - **RNF-01** Seguridad: contraseñas con bcrypt + JWT.
@@ -192,6 +199,7 @@ Crear el archivo **`backend/.env`** (NO se sube a git):
 MONGODB_URI=mongodb+srv://<usuario>:<password>@<cluster>.mongodb.net/miresiduos?retryWrites=true&w=majority
 JWT_SECRET=una-cadena-secreta-larga
 DNI_API_TOKEN=<token-de-apisperu>   # opcional
+GEMINI_API_KEY=<clave-de-aistudio.google.com>   # opcional: IA (chatbot + foto); sin clave usa reglas locales
 PORT=4000
 ```
 
@@ -207,7 +215,9 @@ npm start        # API + dashboard en http://localhost:4000
 - Servido por el mismo backend en `backend/public/index.html`.
 - Local: **http://localhost:4000** · Producción: la URL de Render.
 - Ingresar con una cuenta **administradora** (ver credenciales).
-- Secciones: Resumen, Usuarios, Zonas, Rutas, Incidencias, Residuos.
+- Secciones: Resumen (KPIs + **mapa en vivo** con camiones/ciudadanos/mapa de calor), Usuarios,
+  Zonas, Rutas, Horarios, Incidencias (con foto), Residuos, **Reportes** (gráficos + CSV/impresión),
+  🏆 Ranking y Auditoría.
 
 ---
 
@@ -239,11 +249,22 @@ npx eas-cli build --platform android --profile preview
 
 **Generar APK — opción B (local con Gradle):**
 ```bash
+cd mobile-app
 npx expo prebuild --platform android --clean
 cd android
 ./gradlew assembleRelease
-# APK: android/app/build/outputs/apk/release/app-release.apk
+# APK resultante: mobile-app/android/app/build/outputs/apk/release/app-release.apk
 ```
+
+> ⚠️ Antes de compilar, verifica que `mobile-app/.env` apunte a **producción**
+> (`EXPO_PUBLIC_API_URL=https://gestion-de-residuos-cusco.onrender.com`), porque esa URL queda grabada en el APK.
+>
+> ⚠️ Si Gradle falla con **"SDK location not found"** (el `--clean` borra `local.properties`),
+> crea el archivo `mobile-app/android/local.properties` con la ruta de tu Android SDK:
+> ```properties
+> sdk.dir=C:\\Users\\<TU-USUARIO>\\AppData\\Local\\Android\\Sdk
+> ```
+> y vuelve a ejecutar `./gradlew assembleRelease`.
 
 **Instalar en el celular:** pasar el `.apk` → abrir → Play Protect *“Más detalles → Instalar de todas formas”*.
 
@@ -264,6 +285,7 @@ cd android
    MONGODB_URI = mongodb+srv://...mongodb.net/miresiduos?...
    JWT_SECRET  = una-cadena-secreta-larga
    DNI_API_TOKEN = <token-apisperu>
+   GEMINI_API_KEY = <clave-de-aistudio.google.com>   # para la IA en producción
    ```
 5. **Manual Deploy → Deploy latest commit** (o activar Auto-Deploy).
 
@@ -316,7 +338,21 @@ Base: `/api`
 | GET | `/residuos/reportes` | Reportes por zona/categoría | Admin |
 | GET | `/usuarios` | Listar usuarios | Admin |
 | PUT | `/usuarios/:id/zona/:zonaId` | Asignar zona | Admin |
-| GET | `/alertas/mias` | Mis alertas | Token |
+| GET | `/alertas/mias` | Mis alertas (avisos del camión) | Token |
+| GET | `/rutas/mias` | Rutas asignadas al operador | Operador |
+| PUT | `/rutas/:id/paradas/:idx` | Marcar parada atendida | Operador/Admin |
+| GET | `/rutas/:id/traza` | Recorrido real del camión | Público |
+| GET | `/rutas/:id/eta` | ETA del camión a un punto | Token |
+| CRUD | `/horarios` | Horarios de recojo por zona | Público (GET) / Admin |
+| PUT | `/usuarios/me` · `/me/password` · `/me/ubicacion` | Perfil propio y posición en vivo | Token |
+| POST/PUT/DELETE | `/usuarios` | CRUD de usuarios | Admin |
+| GET | `/usuarios/ubicaciones` | Posiciones en vivo (mapa admin) | Admin |
+| GET | `/incidentes/puntos` | Puntos para el mapa de calor | Token |
+| GET | `/reportes/ranking` | 🏆 Ranking de zonas más limpias | Público |
+| GET | `/reportes/*` | Resumen, recolectado, incidencias, cumplimiento, participación | Admin |
+| POST | `/ia/segregar` | IA Gemini: chatbot / clasificar foto | Token |
+| POST | `/residuos/recoleccion` | Registrar kg recolectados | Operador/Admin |
+| GET | `/auditoria` | Registro de acciones del admin | Admin |
 
 ---
 
