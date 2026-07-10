@@ -6,7 +6,12 @@ const router = Router();
 
 const GEMINI_URL = (model) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-const MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+// Se intentan en orden: si un modelo está saturado (503) o sin cupo (429), pasa al siguiente
+const MODELOS = [
+  process.env.GEMINI_MODEL || 'gemini-3.5-flash',
+  'gemini-3.1-flash-lite',
+  'gemini-flash-lite-latest',
+];
 
 const SISTEMA = `Eres el asistente de segregación de residuos de la Municipalidad del Cusco (Perú).
 Categorías oficiales: ORGÁNICO (verde), RECICLABLE (azul), NO RECICLABLE (negro), PELIGROSO (rojo).
@@ -35,21 +40,33 @@ function respuestaLocal(pregunta) {
 async function llamarGemini(parts) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) return null;
-  const r = await fetch(`${GEMINI_URL(MODEL)}?key=${key}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: SISTEMA }] },
-      contents: [{ role: 'user', parts }],
-      generationConfig: { maxOutputTokens: 300, temperature: 0.4 },
-    }),
-  });
-  if (!r.ok) {
-    console.error('gemini', r.status, await r.text().catch(() => ''));
-    return null;
+  for (const modelo of MODELOS) {
+    const r = await fetch(`${GEMINI_URL(modelo)}?key=${key}`, {
+      method: 'POST',
+      signal: AbortSignal.timeout(12000), // si el modelo no responde, probar el siguiente
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: SISTEMA }] },
+        contents: [{ role: 'user', parts }],
+        generationConfig: {
+          maxOutputTokens: 2048,
+          temperature: 0.4,
+          // sin razonamiento interno: respuesta directa y rápida
+          thinkingConfig: { thinkingBudget: 0 },
+        },
+      }),
+    }).catch(() => null);
+    if (!r) continue;
+    if (!r.ok) {
+      console.error('gemini', modelo, r.status, (await r.text().catch(() => '')).slice(0, 200));
+      continue; // probar el siguiente modelo
+    }
+    const j = await r.json();
+    const salida = j?.candidates?.[0]?.content?.parts || [];
+    const texto = salida.filter((p) => typeof p.text === 'string' && !p.thought).map((p) => p.text).join('');
+    if (texto) return texto;
   }
-  const j = await r.json();
-  return j?.candidates?.[0]?.content?.parts?.map((p) => p.text).join('') || null;
+  return null;
 }
 
 // POST /api/ia/segregar  { pregunta?, fotoBase64?, mimeType? }
@@ -71,7 +88,10 @@ router.post('/segregar', autenticar, async (req, res) => {
     if (texto) return ok(res, { respuesta: texto.trim(), fuente: 'gemini' });
 
     if (fotoBase64) {
-      return fail(res, 'La clasificación por foto requiere configurar GEMINI_API_KEY en el servidor', 503);
+      const motivo = process.env.GEMINI_API_KEY
+        ? 'El servicio de IA está saturado en este momento. Intenta de nuevo en unos segundos.'
+        : 'La clasificación por foto requiere configurar GEMINI_API_KEY en el servidor';
+      return fail(res, motivo, 503);
     }
     return ok(res, { respuesta: respuestaLocal(pregunta), fuente: 'reglas' });
   } catch (e) {
