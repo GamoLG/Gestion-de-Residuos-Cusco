@@ -1,4 +1,4 @@
-# ♻️ Residuos Cusco — Sistema Inteligente de Recolección de Residuos Sólidos Segregados
+# ♻️ Residuos Cusco — Sistema Inteligente de Recolección de Residuos Sólidos Segregados.
 
 Sistema integral para la **gestión y monitoreo de la recolección de residuos sólidos** en la ciudad del Cusco. Incluye:
 
