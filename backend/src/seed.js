@@ -62,6 +62,8 @@ async function main() {
     { nombre: 'Rosa Mamani', dni: '70010005' },
     { nombre: 'Teodoro Quispe', dni: '70010006' },
     { nombre: 'Martina Ccahuana', dni: '70010007' },
+    { nombre: 'Rocío Farfán', dni: '70010008' },
+    { nombre: 'Alberto Cusi', dni: '70010009' },
   ];
   let i = 0;
   for (const o of opDef) {
@@ -87,6 +89,8 @@ async function main() {
     { nombre: 'Katty Sallo', dni: '70020008', zona: 'Saylla', latitud: -13.5883, longitud: -71.8637 },
     // Vive en el centro de Ccorca
     { nombre: 'Wilber Sutta', dni: '70020009', zona: 'Ccorca', latitud: -13.6167, longitud: -72.0667 },
+    // Vive en la Cuesta San Blas
+    { nombre: 'Nayra Puma', dni: '70020010', zona: 'San Blas', latitud: -13.5140, longitud: -71.9530 },
   ];
   i = 0;
   for (const c of citDef) {
@@ -198,7 +202,31 @@ async function main() {
     },
     { upsert: true }
   );
-  console.log('✓ rutas: 7');
+  await Ruta.findOneAndUpdate(
+    { nombre: 'Ruta San Blas' },
+    {
+      nombre: 'Ruta San Blas', camionPlaca: 'X8H-234', operador: operadores[7]._id, zona: zonas['San Blas']._id,
+      estado: 'PENDIENTE',
+      paradas: [
+        { nombre: 'Cuesta San Blas', latitud: -13.5140, longitud: -71.9530, horaEstimada: '07:00' },
+        { nombre: 'Calle Tandapata', latitud: -13.5120, longitud: -71.9560, horaEstimada: '07:20' },
+      ],
+    },
+    { upsert: true }
+  );
+  await Ruta.findOneAndUpdate(
+    { nombre: 'Ruta Santiago' },
+    {
+      nombre: 'Ruta Santiago', camionPlaca: 'X9I-567', operador: operadores[8]._id, zona: zonas['Santiago']._id,
+      estado: 'PENDIENTE',
+      paradas: [
+        { nombre: 'Mercado de Santiago', latitud: -13.5350, longitud: -72.0050, horaEstimada: '06:30' },
+        { nombre: 'Av. Belén', latitud: -13.5300, longitud: -71.9980, horaEstimada: '07:00' },
+      ],
+    },
+    { upsert: true }
+  );
+  console.log('✓ rutas: 9');
 
   // ── Horarios de recojo por zona (realistas, con ventana horaria y sector) ─
   // diaSemana: 0=Domingo … 6=Sábado. Cada "sector" es una avenida/tramo del

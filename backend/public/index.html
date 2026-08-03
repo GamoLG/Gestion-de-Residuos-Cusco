@@ -40,6 +40,20 @@
   nav button{display:block;width:100%;text-align:left;background:transparent;border:none;color:var(--tx2);padding:10px 12px;border-radius:8px;font-size:14px}
   nav button.active{background:var(--surf);color:var(--pri);font-weight:600}
   main{flex:1;padding:24px;overflow:auto;min-width:0}
+  .menuBtn{display:none}
+  .overlay{display:none}
+
+  /* Responsive: en pantallas de celular, el menú lateral se oculta y se
+     abre como un panel deslizante (tocando el botón ☰ o deslizando el dedo
+     desde el borde izquierdo; se cierra deslizando o tocando fuera). */
+  @media (max-width: 860px){
+    aside{position:fixed;top:0;left:0;z-index:50;width:250px;box-shadow:4px 0 24px rgba(0,0,0,.5);transform:translateX(-100%);transition:transform .25s ease}
+    aside.open{transform:translateX(0)}
+    main{padding:16px;padding-top:64px}
+    .menuBtn{display:flex;position:fixed;top:14px;left:14px;z-index:60;width:40px;height:40px;border-radius:8px;background:var(--elev);border:1px solid var(--bd);color:var(--tx);font-size:19px;align-items:center;justify-content:center}
+    .overlay.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:40}
+    .top{padding-right:0}
+  }
   .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:10px;flex-wrap:wrap}
   .top h2{margin:0;font-size:20px}
   .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:18px}
@@ -92,7 +106,9 @@
 
 <!-- APP -->
 <div id="app" class="hidden">
-  <aside>
+  <button class="menuBtn no-print" id="menuBtn" onclick="toggleMenu()">☰</button>
+  <div class="overlay no-print" id="overlay" onclick="toggleMenu()"></div>
+  <aside id="aside">
     <div class="brand">♻️ Residuos Cusco</div>
     <nav id="nav">
       <button data-s="resumen" class="active" onclick="go('resumen')">📊 Resumen</button>
@@ -160,7 +176,27 @@ function go(s){
   limpiarVivo();
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.s===s));
   ({resumen:vResumen,usuarios:vUsuarios,zonas:vZonas,rutas:vRutas,horarios:vHorarios,incidencias:vIncidencias,residuos:vResiduos,reportes:vReportes,ranking:vRanking,auditoria:vAuditoria})[s]();
+  if(window.innerWidth<=860) cerrarMenu(); // en celular, al elegir una sección se cierra el panel
 }
+
+// Menú lateral responsive (celular): tocar ☰, tocar fuera, o deslizar el dedo
+function toggleMenu(){
+  document.getElementById('aside').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
+function abrirMenu(){ document.getElementById('aside').classList.add('open'); document.getElementById('overlay').classList.add('show'); }
+function cerrarMenu(){ document.getElementById('aside').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
+
+let _touchX=null;
+document.addEventListener('touchstart',e=>{ _touchX=e.touches[0].clientX; });
+document.addEventListener('touchend',e=>{
+  if(_touchX==null) return;
+  const dx=e.changedTouches[0].clientX-_touchX;
+  const abierto=document.getElementById('aside').classList.contains('open');
+  if(!abierto && _touchX<24 && dx>60) abrirMenu(); // deslizar desde el borde izquierdo → abre
+  else if(abierto && dx<-60) cerrarMenu(); // deslizar hacia la izquierda → cierra
+  _touchX=null;
+});
 const main=()=>document.getElementById('main');
 const esc=(x)=>String(x??'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
 const estadoColor={PENDIENTE:'var(--warn)',EN_PROGRESO:'var(--ok)',COMPLETADA:'var(--azul)',CANCELADA:'var(--dang)',EN_PROCESO:'var(--azul)',RESUELTO:'var(--ok)'};

@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useRouter, useLocalSearchParams } from 'expo-router';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import api from '../../lib/api';
@@ -15,6 +15,7 @@ const CUSCO = { lat: -13.52264, lng: -71.96734 };
 // a los ciudadanos (próximo / llegó / pasó).
 export default function MiRuta() {
   const router = useRouter();
+  const { ruta: rutaParam } = useLocalSearchParams<{ ruta?: string }>();
   const [ruta, setRuta] = useState<any | null>(null);
   const [transmitiendo, setTransmitiendo] = useState(false);
   const [ultimoEnvio, setUltimoEnvio] = useState<string | null>(null);
@@ -23,14 +24,23 @@ export default function MiRuta() {
   const rutaId = useRef<string | null>(null);
   const ultimoPut = useRef(0);
 
+  // Si viene un id de ruta por parámetro (modo prueba: "conducir cualquier
+  // ruta"), se usa esa directamente. Si no, se autodetecta entre las
+  // rutas asignadas al conductor (comportamiento normal).
   const cargar = useCallback(async () => {
     try {
+      if (rutaParam) {
+        const { data } = await api.get(`/rutas/${rutaParam}`);
+        setRuta(data.data);
+        rutaId.current = data.data?._id || null;
+        return;
+      }
       const { data } = await api.get('/rutas/mias');
       const activa = (data.data || []).find((r: any) => r.estado === 'EN_PROGRESO') || (data.data || [])[0] || null;
       setRuta(activa);
       rutaId.current = activa?._id || null;
     } catch {}
-  }, []);
+  }, [rutaParam]);
 
   const detener = useCallback(() => {
     watch.current?.remove();

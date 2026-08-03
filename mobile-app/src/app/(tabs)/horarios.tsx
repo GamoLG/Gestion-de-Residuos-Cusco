@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -19,6 +19,7 @@ export default function Horarios() {
   const [horarios, setHorarios] = useState<any[]>([]);
   const [alertas, setAlertas] = useState<any[]>([]);
   const [refrescando, setRefrescando] = useState(false);
+  const timer = useRef<any>(null);
 
   const cargar = useCallback(async () => {
     try {
@@ -31,7 +32,13 @@ export default function Horarios() {
     } catch {}
   }, [usuario?.zonaId]);
 
-  useFocusEffect(useCallback(() => { cargar(); }, [cargar]));
+  useFocusEffect(
+    useCallback(() => {
+      cargar();
+      timer.current = setInterval(cargar, 8000); // refresco en vivo mientras la pantalla está abierta
+      return () => clearInterval(timer.current);
+    }, [cargar])
+  );
   const onRefresh = async () => { setRefrescando(true); await cargar(); setRefrescando(false); };
 
   const hoy = new Date().getDay();

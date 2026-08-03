@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { useState, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Alert } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { useAuth } from '../../lib/auth';
@@ -13,6 +13,9 @@ export default function Home() {
   const [activas, setActivas] = useState(0);
   const [alerta, setAlerta] = useState<any | null>(null);
   const [refrescando, setRefrescando] = useState(false);
+  const ultimaAlertaId = useRef<string | null>(null);
+  const primerCarga = useRef(true);
+  const timer = useRef<any>(null);
 
   const cargar = useCallback(async () => {
     try {
@@ -23,12 +26,29 @@ export default function Home() {
     } catch {}
     try {
       const { data } = await api.get('/alertas/mias');
-      const noLeida = (data.data || []).find((a: any) => !a.leida);
+      const todas = data.data || [];
+      const noLeida = todas.find((a: any) => !a.leida);
       setAlerta(noLeida || null);
+      // Si llegó un aviso nuevo (distinto al último visto) y no es la primera carga
+      // de la pantalla, lo mostramos como un pop-up nativo (simula una notificación).
+      const masReciente = todas[0];
+      if (masReciente && masReciente._id !== ultimaAlertaId.current) {
+        if (!primerCarga.current) {
+          Alert.alert(masReciente.titulo || 'Nuevo aviso', masReciente.mensaje);
+        }
+        ultimaAlertaId.current = masReciente._id;
+      }
+      primerCarga.current = false;
     } catch {}
   }, []);
 
-  useFocusEffect(useCallback(() => { cargar(); }, [cargar]));
+  useFocusEffect(
+    useCallback(() => {
+      cargar();
+      timer.current = setInterval(cargar, 8000); // refresco en vivo mientras la pantalla está abierta
+      return () => clearInterval(timer.current);
+    }, [cargar])
+  );
 
   const onRefresh = async () => { setRefrescando(true); await cargar(); setRefrescando(false); };
 

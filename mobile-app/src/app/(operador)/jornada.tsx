@@ -63,6 +63,12 @@ export default function Jornada() {
         </View>
       )}
 
+      <TouchableOpacity style={s.prueba} onPress={() => router.push('/elegir-ruta')} activeOpacity={0.85}>
+        <Feather name="shuffle" size={16} color={colors.warning} />
+        <Text style={s.pruebaTxt}>🧪 Modo prueba: conducir cualquier ruta</Text>
+        <Feather name="chevron-right" size={16} color={colors.textMuted} />
+      </TouchableOpacity>
+
       <Text style={s.sec}>Mis rutas asignadas</Text>
       {rutas.length === 0 && <Text style={s.vacio}>El administrador aún no te asignó rutas.</Text>}
       {rutas.map((r) => {
@@ -130,6 +136,8 @@ const s = StyleSheet.create({
   enCursoS: { color: colors.textSecondary, fontSize: 12, marginTop: 2 },
   descanso: { backgroundColor: colors.bgElevated, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, padding: spacing.lg, marginTop: spacing.lg },
   descansoTxt: { color: colors.textSecondary, fontSize: 13, lineHeight: 19 },
+  prueba: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, borderWidth: 1, borderColor: colors.warning, borderRadius: radius.md, padding: spacing.md, marginTop: spacing.lg },
+  pruebaTxt: { flex: 1, color: colors.warning, fontSize: 13, fontWeight: '700' },
   sec: { color: colors.textPrimary, fontSize: 16, fontWeight: '700', marginTop: spacing.xl, marginBottom: spacing.sm },
   vacio: { color: colors.textMuted, fontSize: 14 },
   ruta: { backgroundColor: colors.bgElevated, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: spacing.md, marginBottom: spacing.md },
