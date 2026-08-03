@@ -1,6 +1,8 @@
 import Usuario from './models/Usuario.js';
 import Alerta from './models/Alerta.js';
 import TrazaGPS from './models/TrazaGPS.js';
+import Horario from './models/Horario.js';
+import Ruta from './models/Ruta.js';
 
 // Distancia en metros entre dos puntos (Haversine)
 export function distanciaMetros(lat1, lng1, lat2, lng2) {
@@ -12,6 +14,44 @@ export function distanciaMetros(lat1, lng1, lat2, lng2) {
     Math.sin(dLat / 2) ** 2 +
     Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLng / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+// Hora actual en Cusco (America/Lima, UTC-5 fijo, sin horario de verano) —
+// el servidor (Render) corre en UTC, así que NO se puede usar new Date().getDay()/getHours() directo.
+const DIA_A_NUM = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+export function ahoraCusco() {
+  const partes = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Lima', weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(new Date());
+  const m = Object.fromEntries(partes.map((p) => [p.type, p.value]));
+  const hora = parseInt(m.hour, 10) % 24;
+  const minuto = parseInt(m.minute, 10);
+  return { diaSemana: DIA_A_NUM[m.weekday], minutosDelDia: hora * 60 + minuto, hora, minuto };
+}
+
+// 00:00 de "hoy" en Cusco, expresado como instante UTC (para filtrar createdAt >= hoy)
+export function inicioDeHoyCusco() {
+  const OFFSET_MS = 5 * 3600 * 1000; // Lima = UTC-5
+  const lima = new Date(Date.now() - OFFSET_MS);
+  const inicioLima = Date.UTC(lima.getUTCFullYear(), lima.getUTCMonth(), lima.getUTCDate(), 0, 0, 0);
+  return new Date(inicioLima + OFFSET_MS);
+}
+
+function minutosDe(hhmm) {
+  if (!hhmm) return null;
+  const [h, m] = hhmm.split(':').map(Number);
+  return h * 60 + m;
+}
+
+// Horarios activos de una zona para el día de hoy (en Cusco), ordenados por hora
+async function horariosDeHoy(zonaId) {
+  const { diaSemana } = ahoraCusco();
+  return Horario.find({ zona: zonaId, diaSemana, activo: true }).sort('hora');
+}
+
+function textoVentana(h) {
+  const rango = h.horaFin ? `${h.hora}–${h.horaFin}` : `${h.hora}`;
+  return h.sector ? `${h.sector} (${rango})` : rango;
 }
 
 // Velocidad estimada del camión (km/h) según sus últimas trazas; 15 km/h por defecto
@@ -29,11 +69,12 @@ async function velocidadEstimada(rutaId) {
 }
 
 const UMBRAL_PROXIMO = 800; // m — "el camión está próximo"
-const UMBRAL_LLEGO = 200; // m — "el camión llegó"
-const UMBRAL_PASO = 600; // m — se alejó tras haber llegado
+const UMBRAL_LLEGO = 200; // m — "el camión llegó" (radio del punto de recojo)
+const UMBRAL_PASO = 600; // m — se alejó tras haber llegado ⇒ "ya no está"
 
 // Evalúa geocercas: crea avisos PROXIMIDAD / LLEGADA / PASO para los ciudadanos
-// de la zona de la ruta. Devuelve cuántos avisos generó.
+// de la zona de la ruta, según su distancia PERSONAL al camión (cada ciudadano
+// tiene su propia ubicación). Devuelve cuántos avisos generó.
 export async function evaluarGeocercas(ruta) {
   if (!ruta?.zona || ruta.latitudActual == null || ruta.longitudActual == null) return 0;
 
@@ -56,6 +97,8 @@ export async function evaluarGeocercas(ruta) {
   const ya = new Set(previas.map((a) => `${a.usuario}:${a.tipo}`));
 
   const kmh = await velocidadEstimada(ruta._id);
+  const horariosHoy = await horariosDeHoy(ruta.zona);
+  const contexto = horariosHoy.length ? ` Horario previsto: ${horariosHoy.map(textoVentana).join(' · ')}.` : '';
   const nuevas = [];
 
   for (const c of ciudadanos) {
@@ -64,24 +107,24 @@ export async function evaluarGeocercas(ruta) {
 
     if (d <= UMBRAL_LLEGO && !ya.has(key('LLEGADA'))) {
       nuevas.push({
-        tipo: 'LLEGADA', usuario: c._id, ruta: ruta._id,
-        titulo: '✅ El camión llegó a tu zona',
-        mensaje: `El camión de "${ruta.nombre}" está a ${Math.round(d)} m de tu ubicación. ¡Saca tus residuos ahora!`,
+        tipo: 'LLEGADA', usuario: c._id, ruta: ruta._id, zona: ruta.zona,
+        titulo: '✅ El camión llegó a tu punto de recojo',
+        mensaje: `El camión de "${ruta.nombre}" está a ${Math.round(d)} m de tu ubicación. ¡Saca tus residuos ahora!${contexto}`,
       });
       ya.add(key('LLEGADA'));
     } else if (d <= UMBRAL_PROXIMO && !ya.has(key('PROXIMIDAD')) && !ya.has(key('LLEGADA'))) {
       const etaMin = Math.max(1, Math.round((d / 1000 / kmh) * 60));
       nuevas.push({
-        tipo: 'PROXIMIDAD', usuario: c._id, ruta: ruta._id,
+        tipo: 'PROXIMIDAD', usuario: c._id, ruta: ruta._id, zona: ruta.zona,
         titulo: '🔔 El camión está próximo',
-        mensaje: `El camión de "${ruta.nombre}" llega en ~${etaMin} min (${Math.round(d)} m). Ve preparando tus residuos.`,
+        mensaje: `El camión de "${ruta.nombre}" llega en ~${etaMin} min (${Math.round(d)} m). Ve preparando tus residuos.${contexto}`,
       });
       ya.add(key('PROXIMIDAD'));
     } else if (d >= UMBRAL_PASO && ya.has(key('LLEGADA')) && !ya.has(key('PASO'))) {
       nuevas.push({
-        tipo: 'PASO', usuario: c._id, ruta: ruta._id,
-        titulo: '⏭️ El camión ya pasó',
-        mensaje: `El camión de "${ruta.nombre}" ya pasó por tu zona. Espera la próxima recolección.`,
+        tipo: 'PASO', usuario: c._id, ruta: ruta._id, zona: ruta.zona,
+        titulo: '⏭️ El camión ya no está en tu punto',
+        mensaje: `El camión de "${ruta.nombre}" ya pasó por tu punto de recojo. Si no sacaste tus residuos a tiempo, espera la próxima recolección.`,
       });
       ya.add(key('PASO'));
     }
@@ -97,4 +140,49 @@ export async function etaHasta(ruta, lat, lng) {
   const d = distanciaMetros(ruta.latitudActual, ruta.longitudActual, lat, lng);
   const kmh = await velocidadEstimada(ruta._id);
   return { distanciaM: Math.round(d), etaMin: Math.max(1, Math.round((d / 1000 / kmh) * 60)), velocidadKmh: Math.round(kmh) };
+}
+
+// Revisión periódica de RETRASOS: si el horario de hoy de una zona ya cerró su
+// ventana (horaFin + margen) y ningún camión llegó a esa zona hoy, avisa a sus
+// ciudadanos. Se llama desde un temporizador en server.js (no depende del GPS).
+const MARGEN_MIN = 20; // minutos de gracia tras el fin de la ventana
+const LIMITE_MIN = 24 * 60; // no seguir avisando pasado un día completo
+export async function revisarRetrasos() {
+  const { diaSemana, minutosDelDia } = ahoraCusco();
+  const horarios = await Horario.find({ diaSemana, activo: true, horaFin: { $ne: null } });
+  if (!horarios.length) return 0;
+
+  const inicioHoy = inicioDeHoyCusco();
+  let generadas = 0;
+
+  for (const h of horarios) {
+    const finMin = minutosDe(h.horaFin);
+    if (finMin == null) continue;
+    const retrasoMin = minutosDelDia - (finMin + MARGEN_MIN);
+    if (retrasoMin < 0 || retrasoMin > LIMITE_MIN) continue; // aún no vence, o ya pasó demasiado tiempo
+
+    // ¿ya avisamos un retraso de esta zona hoy? (uno por zona/día, evita spam)
+    const yaAvisado = await Alerta.exists({ tipo: 'RETRASO', zona: h.zona, createdAt: { $gte: inicioHoy } });
+    if (yaAvisado) continue;
+
+    // ¿algún camión llegó (LLEGADA) a esta zona hoy?
+    const rutasZona = await Ruta.find({ zona: h.zona }).select('_id');
+    const rutaIds = rutasZona.map((r) => r._id);
+    const yaLlego = rutaIds.length
+      ? await Alerta.exists({ tipo: 'LLEGADA', ruta: { $in: rutaIds }, createdAt: { $gte: inicioHoy } })
+      : false;
+    if (yaLlego) continue;
+
+    const ciudadanos = await Usuario.find({ rol: 'CIUDADANO', activo: true, zona: h.zona }).select('_id');
+    if (!ciudadanos.length) continue;
+
+    const nuevas = ciudadanos.map((c) => ({
+      tipo: 'RETRASO', usuario: c._id, zona: h.zona,
+      titulo: '⚠️ Retraso en tu ruta de recojo',
+      mensaje: `El camión no llegó dentro del horario previsto de ${textoVentana(h)}. Puede haber un retraso o reprogramación; te avisaremos apenas esté cerca.`,
+    }));
+    await Alerta.insertMany(nuevas);
+    generadas += nuevas.length;
+  }
+  return generadas;
 }

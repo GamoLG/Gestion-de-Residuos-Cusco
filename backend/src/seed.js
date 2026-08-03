@@ -27,7 +27,9 @@ async function main() {
     { nombre: 'San Blas', distrito: 'Cusco', color: '#3fb950', geometry: caja(-71.9650, -13.5250, -71.9400, -13.4950) },
     { nombre: 'Wanchaq', distrito: 'Wanchaq', color: '#d29922', geometry: caja(-71.9700, -13.5550, -71.9400, -13.5250) },
     { nombre: 'Santiago', distrito: 'Santiago', color: '#a371f7', geometry: caja(-72.0250, -13.5550, -71.9850, -13.5150) },
-    { nombre: 'San Sebastián', distrito: 'San Sebastián', color: '#f85149', geometry: caja(-71.9400, -13.5550, -71.8800, -13.5000) },
+    // Ampliada para cubrir la Plaza de San Sebastián y el corredor de la Av. de la Cultura (UNSAAC)
+    { nombre: 'San Sebastián', distrito: 'San Sebastián', color: '#f85149', geometry: caja(-71.9400, -13.5550, -71.8700, -13.4950) },
+    { nombre: 'San Jerónimo', distrito: 'San Jerónimo', color: '#39c5cf', geometry: caja(-71.8700, -13.5600, -71.8300, -13.5100) },
   ];
   const zonas = {};
   for (const z of zonasDef) {
@@ -64,7 +66,12 @@ async function main() {
     { nombre: 'María Condori', dni: '70020001', zona: 'Centro Histórico', latitud: -13.5160, longitud: -71.9770 },
     { nombre: 'Rosa Huamán', dni: '70020002', zona: 'Wanchaq', latitud: -13.5400, longitud: -71.9500 },
     { nombre: 'Juan Choque', dni: '70020003', zona: 'Santiago', latitud: -13.5350, longitud: -72.0050 },
-    { nombre: 'Ana Ttito', dni: '70020004', zona: 'San Sebastián', latitud: -13.5300, longitud: -71.9100 },
+    // Vive junto a la Av. de la Cultura, cerca de la UNSAAC
+    { nombre: 'Ana Ttito', dni: '70020004', zona: 'San Sebastián', latitud: -13.5498, longitud: -71.9285 },
+    // Vive cerca de la Plaza de San Sebastián
+    { nombre: 'Willy Apaza', dni: '70020005', zona: 'San Sebastián', latitud: -13.5345, longitud: -71.8797 },
+    // Vive junto a la Av. de los Incas, San Jerónimo
+    { nombre: 'Elena Quispe', dni: '70020006', zona: 'San Jerónimo', latitud: -13.5420, longitud: -71.8575 },
   ];
   i = 0;
   for (const c of citDef) {
@@ -111,33 +118,80 @@ async function main() {
       estado: 'PENDIENTE',
       paradas: [
         { nombre: 'Óvalo Pachacútec', latitud: -13.5310, longitud: -71.9575, horaEstimada: '14:00' },
-        { nombre: 'Av. La Cultura', latitud: -13.5260, longitud: -71.9480, horaEstimada: '15:00' },
+        { nombre: 'Av. La Cultura (Wanchaq)', latitud: -13.5260, longitud: -71.9480, horaEstimada: '15:00' },
       ],
     },
     { upsert: true }
   );
-  console.log('✓ rutas: 2');
+  await Ruta.findOneAndUpdate(
+    { nombre: 'Ruta San Sebastián - Av. Cultura' },
+    {
+      nombre: 'Ruta San Sebastián - Av. Cultura', camionPlaca: 'X3C-789', operador: operadores[2]._id, zona: zonas['San Sebastián']._id,
+      estado: 'PENDIENTE',
+      paradas: [
+        { nombre: 'Av. de la Cultura - UNSAAC', latitud: -13.5498, longitud: -71.9285, horaEstimada: '15:00' },
+        { nombre: 'Puente Angostura', latitud: -13.5420, longitud: -71.9080, horaEstimada: '15:20' },
+        { nombre: 'Plaza de San Sebastián', latitud: -13.5345, longitud: -71.8797, horaEstimada: '15:45' },
+      ],
+    },
+    { upsert: true }
+  );
+  await Ruta.findOneAndUpdate(
+    { nombre: 'Ruta San Jerónimo Mañana' },
+    {
+      nombre: 'Ruta San Jerónimo Mañana', camionPlaca: 'X4D-012', operador: operadores[3]._id, zona: zonas['San Jerónimo']._id,
+      estado: 'PENDIENTE',
+      paradas: [
+        { nombre: 'Av. de los Incas', latitud: -13.5420, longitud: -71.8575, horaEstimada: '07:00' },
+        { nombre: 'Plaza de San Jerónimo', latitud: -13.5432, longitud: -71.8590, horaEstimada: '07:30' },
+      ],
+    },
+    { upsert: true }
+  );
+  console.log('✓ rutas: 4');
 
-  // ── Horarios de recojo por zona ───────────────────────────────────────────
-  // diaSemana: 0=Domingo … 6=Sábado
+  // ── Horarios de recojo por zona (realistas, con ventana horaria y sector) ─
+  // diaSemana: 0=Domingo … 6=Sábado. Cada "sector" es una avenida/tramo del
+  // distrito; una misma zona puede tener varios sectores con días distintos.
+  // Se limpia la colección primero: el esquema de horarios de la demo cambió
+  // (se agregó sector/horaFin) y dejaba duplicados obsoletos con upsert.
+  await Horario.deleteMany({});
   const horariosDef = [
-    { zona: 'Centro Histórico', diaSemana: 1, hora: '06:00', tipoResiduo: 'NO_RECICLABLE' },
-    { zona: 'Centro Histórico', diaSemana: 3, hora: '06:00', tipoResiduo: 'ORGANICO' },
-    { zona: 'Centro Histórico', diaSemana: 5, hora: '06:00', tipoResiduo: 'RECICLABLE' },
-    { zona: 'San Blas', diaSemana: 2, hora: '07:00', tipoResiduo: 'NO_RECICLABLE' },
-    { zona: 'San Blas', diaSemana: 4, hora: '07:00', tipoResiduo: 'RECICLABLE' },
-    { zona: 'Wanchaq', diaSemana: 1, hora: '14:00', tipoResiduo: 'NO_RECICLABLE' },
-    { zona: 'Wanchaq', diaSemana: 3, hora: '14:00', tipoResiduo: 'ORGANICO' },
-    { zona: 'Wanchaq', diaSemana: 6, hora: '08:00', tipoResiduo: 'RECICLABLE' },
-    { zona: 'Santiago', diaSemana: 2, hora: '06:30', tipoResiduo: 'NO_RECICLABLE' },
-    { zona: 'Santiago', diaSemana: 5, hora: '06:30', tipoResiduo: 'ORGANICO' },
-    { zona: 'San Sebastián', diaSemana: 1, hora: '08:00', tipoResiduo: 'NO_RECICLABLE' },
-    { zona: 'San Sebastián', diaSemana: 4, hora: '08:00', tipoResiduo: 'RECICLABLE' },
+    // Centro Histórico — recojo temprano en el casco antiguo
+    { zona: 'Centro Histórico', sector: 'Plaza de Armas y alrededores', diaSemana: 1, hora: '06:00', horaFin: '08:00', tipoResiduo: 'NO_RECICLABLE' },
+    { zona: 'Centro Histórico', sector: 'Plaza de Armas y alrededores', diaSemana: 3, hora: '06:00', horaFin: '08:00', tipoResiduo: 'ORGANICO' },
+    { zona: 'Centro Histórico', sector: 'Plaza de Armas y alrededores', diaSemana: 5, hora: '06:00', horaFin: '08:00', tipoResiduo: 'RECICLABLE' },
+
+    // San Blas — barrio artesanal
+    { zona: 'San Blas', sector: 'San Blas', diaSemana: 2, hora: '07:00', horaFin: '10:00', tipoResiduo: 'NO_RECICLABLE' },
+    { zona: 'San Blas', sector: 'San Blas', diaSemana: 4, hora: '07:00', horaFin: '10:00', tipoResiduo: 'RECICLABLE' },
+
+    // Wanchaq — sector central en la tarde + Av. de la Cultura (tramo Wanchaq)
+    { zona: 'Wanchaq', sector: 'Wanchaq centro', diaSemana: 1, hora: '14:00', horaFin: '17:00', tipoResiduo: 'NO_RECICLABLE' },
+    { zona: 'Wanchaq', sector: 'Wanchaq centro', diaSemana: 3, hora: '14:00', horaFin: '17:00', tipoResiduo: 'ORGANICO' },
+    { zona: 'Wanchaq', sector: 'Av. de la Cultura (tramo Wanchaq)', diaSemana: 6, hora: '08:00', horaFin: '11:00', tipoResiduo: 'RECICLABLE' },
+
+    // Santiago
+    { zona: 'Santiago', sector: 'Santiago', diaSemana: 2, hora: '06:30', horaFin: '09:30', tipoResiduo: 'NO_RECICLABLE' },
+    { zona: 'Santiago', sector: 'Santiago', diaSemana: 5, hora: '06:30', horaFin: '09:30', tipoResiduo: 'ORGANICO' },
+
+    // San Sebastián — dos sectores con días distintos:
+    //  · Av. de la Cultura / UNSAAC: lunes, miércoles y viernes a las 3pm
+    //  · Centro de San Sebastián: martes y jueves, de 7am a 11am
+    { zona: 'San Sebastián', sector: 'Av. de la Cultura (UNSAAC)', diaSemana: 1, hora: '15:00', horaFin: '16:00', tipoResiduo: 'NO_RECICLABLE' },
+    { zona: 'San Sebastián', sector: 'Av. de la Cultura (UNSAAC)', diaSemana: 3, hora: '15:00', horaFin: '16:00', tipoResiduo: 'ORGANICO' },
+    { zona: 'San Sebastián', sector: 'Av. de la Cultura (UNSAAC)', diaSemana: 5, hora: '15:00', horaFin: '16:00', tipoResiduo: 'RECICLABLE' },
+    { zona: 'San Sebastián', sector: 'Centro de San Sebastián', diaSemana: 2, hora: '07:00', horaFin: '11:00', tipoResiduo: 'NO_RECICLABLE' },
+    { zona: 'San Sebastián', sector: 'Centro de San Sebastián', diaSemana: 4, hora: '07:00', horaFin: '11:00', tipoResiduo: 'RECICLABLE' },
+
+    // San Jerónimo — lunes y martes en la mañana (Av. de los Incas)
+    { zona: 'San Jerónimo', sector: 'Av. de los Incas', diaSemana: 1, hora: '07:00', horaFin: '10:00', tipoResiduo: 'NO_RECICLABLE' },
+    { zona: 'San Jerónimo', sector: 'Av. de los Incas', diaSemana: 2, hora: '07:00', horaFin: '10:00', tipoResiduo: 'ORGANICO' },
   ];
   for (const h of horariosDef) {
     const zonaId = zonas[h.zona]._id;
     await Horario.findOneAndUpdate(
-      { zona: zonaId, diaSemana: h.diaSemana, hora: h.hora },
+      { zona: zonaId, diaSemana: h.diaSemana, hora: h.hora, sector: h.sector },
       { ...h, zona: zonaId, activo: true },
       { upsert: true }
     );
@@ -153,6 +207,7 @@ async function main() {
     ['Wanchaq', 'ORGANICO', 980], ['Wanchaq', 'NO_RECICLABLE', 1500], ['Wanchaq', 'PELIGROSO', 45],
     ['Santiago', 'NO_RECICLABLE', 1750], ['Santiago', 'RECICLABLE', 220],
     ['San Sebastián', 'ORGANICO', 860], ['San Sebastián', 'NO_RECICLABLE', 1320],
+    ['San Jerónimo', 'ORGANICO', 540], ['San Jerónimo', 'NO_RECICLABLE', 690],
   ];
   for (const [z, cat, kg] of recolecciones) {
     await Residuo.findOneAndUpdate(

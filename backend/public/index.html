@@ -64,6 +64,10 @@
   .chartBox h3{margin:0 0 10px;font-size:14px;color:var(--tx2)}
   #mapaVivo{height:420px;border-radius:12px;border:1px solid var(--bd)}
   .leyenda{display:flex;gap:16px;font-size:12px;color:var(--tx2);margin-top:8px;flex-wrap:wrap}
+  .pulsoWrap{position:relative;width:34px;height:34px;display:flex;align-items:center;justify-content:center}
+  .pulsoDot{position:absolute;width:16px;height:16px;border-radius:50%;background:var(--dang);box-shadow:0 0 0 rgba(248,81,73,.7);animation:pulso 1.4s infinite}
+  .pulsoEmo{position:relative;z-index:2;font-size:24px}
+  @keyframes pulso{0%{box-shadow:0 0 0 0 rgba(248,81,73,.7)}70%{box-shadow:0 0 0 22px rgba(248,81,73,0)}100%{box-shadow:0 0 0 0 rgba(248,81,73,0)}}
   .buscar{max-width:260px}
   .rank1{color:gold}.rank2{color:silver}.rank3{color:#cd7f32}
   @media print{aside,.no-print{display:none!important}body{background:#fff;color:#000}}
@@ -217,7 +221,7 @@ async function vResumen(){
         (r.paradas||[]).forEach(p=>{ if(p.latitud) L.circleMarker([p.latitud,p.longitud],{radius:6,color:p.atendida?'#3fb950':'#8b949e',fillOpacity:.9}).bindPopup(esc(p.nombre||'Parada')+(p.atendida?' ✅':' ⏳')).addTo(capa); });
         const pts=(r.paradas||[]).filter(p=>p.latitud).map(p=>[p.latitud,p.longitud]);
         if(pts.length>1) L.polyline(pts,{color:'#a371f7',dashArray:'8 8',weight:3}).addTo(capa);
-        if(r.latitudActual) L.marker([r.latitudActual,r.longitudActual],{icon:L.divIcon({className:'',html:'<div style="font-size:26px">🚛</div>',iconSize:[30,30]})}).bindPopup('<b>'+esc(r.nombre)+'</b><br>'+esc(r.camionPlaca||'')).addTo(capa);
+        if(r.latitudActual) L.marker([r.latitudActual,r.longitudActual],{icon:L.divIcon({className:'',html:'<div class="pulsoWrap"><div class="pulsoDot"></div><div class="pulsoEmo">🚛</div></div>',iconSize:[34,34],iconAnchor:[17,17]})}).bindPopup('<b>'+esc(r.nombre)+'</b><br>'+esc(r.camionPlaca||'')+' · en vivo').addTo(capa);
         try{
           const tz=await api('/rutas/'+r._id+'/traza');
           const tp=tz.map(t=>[t.latitud,t.longitud]);
@@ -366,23 +370,28 @@ async function agregarParada(id){
 /* ── HORARIOS ───────────────────────────────────────────────────────────── */
 async function vHorarios(){
   main().innerHTML=`<div class="top"><h2>Horarios de recojo</h2>${botonesExportar('horarios')}</div>
+  <p class="muted">Cada zona puede tener varios <b>sectores</b> (avenidas/tramos) con días y ventanas horarias distintas — ej. "Av. de la Cultura (UNSAAC)" lunes/miércoles/viernes 15:00–16:00, y "Centro de San Sebastián" martes/jueves 07:00–11:00.</p>
   <div class="card" style="margin-bottom:16px"><div class="row">
     <div class="f"><label>Zona</label><select id="hz"></select></div>
+    <div class="f"><label>Sector (opcional)</label><input id="hs" placeholder="Ej. Av. de la Cultura"></div>
     <div class="f"><label>Día</label><select id="hd">${DIAS.map((d,i)=>`<option value="${i}">${d}</option>`).join('')}</select></div>
-    <div class="f"><label>Hora</label><input id="hh" type="time" value="06:00"></div>
+    <div class="f"><label>Hora inicio</label><input id="hh" type="time" value="06:00"></div>
+    <div class="f"><label>Hora fin (opcional)</label><input id="hf" type="time"></div>
     <div class="f"><label>Tipo de residuo</label><select id="ht">${CATS.map(c=>`<option>${c}</option>`).join('')}</select></div>
     <button class="btn sm" onclick="crearHorario()">Agregar</button></div></div>
   <div class="tablaWrap" id="c">Cargando…</div>`;
   const [hs,zo]=await Promise.all([api('/horarios'),api('/zonas')]);
   document.getElementById('hz').innerHTML=zo.map(z=>`<option value="${z._id}">${esc(z.nombre)}</option>`).join('');
-  document.getElementById('c').innerHTML=`<table><thead><tr><th>Zona</th><th>Día</th><th>Hora</th><th>Residuo</th><th></th></tr></thead><tbody>${
-    hs.map(h=>`<tr><td>${esc(h.zona?.nombre||'—')}</td><td>${DIAS[h.diaSemana]}</td><td>${esc(h.hora)}</td><td>${esc(h.tipoResiduo)}</td>
-    <td><button class="mini rojo" onclick="eliminarHorario('${h._id}')">🗑</button></td></tr>`).join('')||'<tr><td colspan=5 class="muted">Sin horarios</td></tr>'
+  document.getElementById('c').innerHTML=`<table><thead><tr><th>Zona</th><th>Sector</th><th>Día</th><th>Ventana</th><th>Residuo</th><th></th></tr></thead><tbody>${
+    hs.map(h=>`<tr><td>${esc(h.zona?.nombre||'—')}</td><td>${esc(h.sector||'—')}</td><td>${DIAS[h.diaSemana]}</td><td>${esc(h.hora)}${h.horaFin?'–'+esc(h.horaFin):''}</td><td>${esc(h.tipoResiduo)}</td>
+    <td><button class="mini rojo" onclick="eliminarHorario('${h._id}')">🗑</button></td></tr>`).join('')||'<tr><td colspan=6 class="muted">Sin horarios</td></tr>'
   }</tbody></table>`;
 }
 async function crearHorario(){
-  const zona=document.getElementById('hz').value, diaSemana=parseInt(document.getElementById('hd').value), hora=document.getElementById('hh').value, tipoResiduo=document.getElementById('ht').value;
-  try{ await api('/horarios',{method:'POST',body:JSON.stringify({zona,diaSemana,hora,tipoResiduo})}); vHorarios(); }catch(e){alert(e.message)}
+  const zona=document.getElementById('hz').value, sector=document.getElementById('hs').value.trim(),
+    diaSemana=parseInt(document.getElementById('hd').value), hora=document.getElementById('hh').value,
+    horaFin=document.getElementById('hf').value||null, tipoResiduo=document.getElementById('ht').value;
+  try{ await api('/horarios',{method:'POST',body:JSON.stringify({zona,sector,diaSemana,hora,horaFin,tipoResiduo})}); vHorarios(); }catch(e){alert(e.message)}
 }
 async function eliminarHorario(id){ if(!confirm('¿Eliminar horario?'))return; try{ await api('/horarios/'+id,{method:'DELETE'}); vHorarios(); }catch(e){alert(e.message)} }
 

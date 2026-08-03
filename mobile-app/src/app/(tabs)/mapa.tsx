@@ -36,7 +36,7 @@ export default function Mapa() {
         if (r.latitudActual && r.longitudActual) {
           ms.push({
             id: `camion-${r._id}`, lat: r.latitudActual, lng: r.longitudActual,
-            icono: '🚛', titulo: `${r.nombre} (${r.camionPlaca || 's/placa'})`,
+            icono: '🚛', pulso: true, titulo: `${r.nombre} (${r.camionPlaca || 's/placa'}) · en vivo`,
           });
         }
         // Paradas: verdes atendidas, grises pendientes + línea de la ruta planificada

@@ -10,6 +10,7 @@ export interface Marcador {
   color?: string;
   titulo?: string;
   icono?: string; // emoji opcional (🚛, 📍, 🏠…)
+  pulso?: boolean; // punto rojo pulsante (camión acercándose en vivo)
 }
 
 export interface Polilinea {
@@ -55,7 +56,10 @@ export function MapaOSM({ centro, zoom = 13, marcadores = [], polilineas = [], c
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>html,body,#m{margin:0;height:100%;width:100%;background:${colors.bg}}
 .pin{width:22px;height:22px;border-radius:11px;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5)}
-.emo{font-size:26px;line-height:30px;text-shadow:0 1px 3px rgba(0,0,0,.6)}</style>
+.emo{font-size:26px;line-height:30px;text-shadow:0 1px 3px rgba(0,0,0,.6);position:relative;z-index:2}
+.pulsoWrap{position:relative;width:34px;height:34px;display:flex;align-items:center;justify-content:center}
+.pulsoDot{position:absolute;width:16px;height:16px;border-radius:50%;background:#f85149;box-shadow:0 0 0 rgba(248,81,73,.7);animation:pulso 1.4s infinite}
+@keyframes pulso{0%{box-shadow:0 0 0 0 rgba(248,81,73,.7)}70%{box-shadow:0 0 0 22px rgba(248,81,73,0)}100%{box-shadow:0 0 0 0 rgba(248,81,73,0)}}</style>
 </head><body><div id="m"></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
@@ -83,10 +87,15 @@ window.handle=function(cmd){
       pts=pts.concat(ll);
     });
     (cmd.marcadores||[]).forEach(function(m){
-      var html = m.icono
-        ? '<div class="emo">'+m.icono+'</div>'
-        : '<div class="pin" style="background:'+(m.color||'${colors.primary}')+'"></div>';
-      var icon=L.divIcon({className:'',html:html,iconSize:m.icono?[30,30]:[22,22],iconAnchor:m.icono?[15,15]:[11,11]});
+      var html;
+      if(m.pulso){
+        html='<div class="pulsoWrap"><div class="pulsoDot"></div>'+(m.icono?'<div class="emo">'+m.icono+'</div>':'')+'</div>';
+      } else if(m.icono){
+        html='<div class="emo">'+m.icono+'</div>';
+      } else {
+        html='<div class="pin" style="background:'+(m.color||'${colors.primary}')+'"></div>';
+      }
+      var icon=L.divIcon({className:'',html:html,iconSize:m.pulso?[34,34]:(m.icono?[30,30]:[22,22]),iconAnchor:m.pulso?[17,17]:(m.icono?[15,15]:[11,11])});
       var mk=L.marker([m.lat,m.lng],{icon:icon});
       if(m.titulo) mk.bindPopup(m.titulo);
       mk.addTo(capa);

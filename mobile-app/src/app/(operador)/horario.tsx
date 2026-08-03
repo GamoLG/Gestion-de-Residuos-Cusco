@@ -36,6 +36,7 @@ export default function HorarioOperador() {
   const hoy = new Date().getDay();
   const porDia: Record<number, any[]> = {};
   horarios.forEach((h) => { (porDia[h.diaSemana] ||= []).push(h); });
+  const rango = (h: any) => (h.horaFin ? `${h.hora}–${h.horaFin}` : h.hora);
 
   return (
     <ScrollView
@@ -67,14 +68,16 @@ export default function HorarioOperador() {
           <View key={i} style={[s.dia, i === hoy && { borderColor: VERDE }]}>
             <Text style={[s.diaT, i === hoy && { color: VERDE }]}>{dia}{i === hoy ? ' · HOY' : ''}</Text>
             {porDia[i].map((h) => (
-              <View key={h._id} style={s.hora}>
-                <Feather name="clock" size={13} color={colors.textMuted} />
-                <Text style={s.horaTxt}>{h.hora}</Text>
-                <Text style={s.horaZona}>{h.zona?.nombre}</Text>
-                <View style={[s.cat, { backgroundColor: (categoriaColor[h.tipoResiduo] || colors.textMuted) + '22' }]}>
-                  <Text style={[s.catTxt, { color: categoriaColor[h.tipoResiduo] || colors.textMuted }]}>
-                    {CAT_LABEL[h.tipoResiduo] || h.tipoResiduo}
-                  </Text>
+              <View key={h._id} style={{ marginBottom: 4 }}>
+                <View style={s.hora}>
+                  <Feather name="clock" size={13} color={colors.textMuted} />
+                  <Text style={s.horaTxt}>{rango(h)}</Text>
+                  <Text style={s.horaZona}>{h.sector || h.zona?.nombre}</Text>
+                  <View style={[s.cat, { backgroundColor: (categoriaColor[h.tipoResiduo] || colors.textMuted) + '22' }]}>
+                    <Text style={[s.catTxt, { color: categoriaColor[h.tipoResiduo] || colors.textMuted }]}>
+                      {CAT_LABEL[h.tipoResiduo] || h.tipoResiduo}
+                    </Text>
+                  </View>
                 </View>
               </View>
             ))}
@@ -99,7 +102,7 @@ const s = StyleSheet.create({
   dia: { backgroundColor: colors.bgElevated, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.sm },
   diaT: { color: colors.textPrimary, fontSize: 14, fontWeight: '700', marginBottom: spacing.xs },
   hora: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: 3 },
-  horaTxt: { color: colors.textPrimary, fontSize: 13, fontWeight: '600', width: 44 },
+  horaTxt: { color: colors.textPrimary, fontSize: 13, fontWeight: '600', width: 88 },
   horaZona: { color: colors.textSecondary, fontSize: 12, flex: 1 },
   cat: { borderRadius: radius.pill, paddingHorizontal: 8, paddingVertical: 2 },
   catTxt: { fontSize: 10, fontWeight: '700' },

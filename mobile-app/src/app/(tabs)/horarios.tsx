@@ -40,6 +40,7 @@ export default function Horarios() {
     const da = (a.diaSemana - hoy + 7) % 7, db = (b.diaSemana - hoy + 7) % 7;
     return da - db || a.hora.localeCompare(b.hora);
   })[0];
+  const rango = (h: any) => (h.horaFin ? `${h.hora}–${h.horaFin}` : h.hora);
 
   const porDia: Record<number, any[]> = {};
   horarios.forEach((h) => { (porDia[h.diaSemana] ||= []).push(h); });
@@ -64,8 +65,9 @@ export default function Horarios() {
           <View style={{ flex: 1 }}>
             <Text style={s.proximoT}>Próxima recolección</Text>
             <Text style={s.proximoV}>
-              {proximo.diaSemana === hoy ? '¡HOY!' : DIAS_SEMANA[proximo.diaSemana]} a las {proximo.hora} · {CAT_LABEL[proximo.tipoResiduo] || proximo.tipoResiduo}
+              {proximo.diaSemana === hoy ? '¡HOY!' : DIAS_SEMANA[proximo.diaSemana]} · {rango(proximo)} · {CAT_LABEL[proximo.tipoResiduo] || proximo.tipoResiduo}
             </Text>
+            {!!proximo.sector && <Text style={s.proximoSec}>{proximo.sector}</Text>}
           </View>
         </View>
       )}
@@ -75,15 +77,18 @@ export default function Horarios() {
           <View key={i} style={[s.dia, i === hoy && { borderColor: acento }]}>
             <Text style={[s.diaT, i === hoy && { color: acento }]}>{dia}{i === hoy ? ' · HOY' : ''}</Text>
             {porDia[i].map((h) => (
-              <View key={h._id} style={s.hora}>
-                <Feather name="clock" size={14} color={colors.textMuted} />
-                <Text style={s.horaTxt}>{h.hora}</Text>
-                <View style={[s.cat, { backgroundColor: (categoriaColor[h.tipoResiduo] || colors.textMuted) + '22' }]}>
-                  <Text style={[s.catTxt, { color: categoriaColor[h.tipoResiduo] || colors.textMuted }]}>
-                    {CAT_LABEL[h.tipoResiduo] || h.tipoResiduo}
-                  </Text>
+              <View key={h._id} style={s.horaFila}>
+                <View style={s.hora}>
+                  <Feather name="clock" size={14} color={colors.textMuted} />
+                  <Text style={s.horaTxt}>{rango(h)}</Text>
+                  <View style={[s.cat, { backgroundColor: (categoriaColor[h.tipoResiduo] || colors.textMuted) + '22' }]}>
+                    <Text style={[s.catTxt, { color: categoriaColor[h.tipoResiduo] || colors.textMuted }]}>
+                      {CAT_LABEL[h.tipoResiduo] || h.tipoResiduo}
+                    </Text>
+                  </View>
+                  {!usuario?.zonaId && <Text style={s.zonaTag}>{h.zona?.nombre}</Text>}
                 </View>
-                {!usuario?.zonaId && <Text style={s.zonaTag}>{h.zona?.nombre}</Text>}
+                {!!h.sector && <Text style={s.sectorTxt}>📍 {h.sector}</Text>}
               </View>
             ))}
           </View>
@@ -121,10 +126,13 @@ const s = StyleSheet.create({
   proximo: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.bgElevated, borderWidth: 1.5, borderRadius: radius.lg, padding: spacing.lg, marginBottom: spacing.lg },
   proximoT: { color: colors.textSecondary, fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
   proximoV: { color: colors.textPrimary, fontSize: 15, fontWeight: '700', marginTop: 2 },
+  proximoSec: { color: colors.textSecondary, fontSize: 12, marginTop: 2 },
   dia: { backgroundColor: colors.bgElevated, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.sm },
   diaT: { color: colors.textPrimary, fontSize: 14, fontWeight: '700', marginBottom: spacing.sm },
-  hora: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: 4 },
-  horaTxt: { color: colors.textPrimary, fontSize: 14, fontWeight: '600', width: 46 },
+  horaFila: { paddingVertical: 4 },
+  hora: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  horaTxt: { color: colors.textPrimary, fontSize: 14, fontWeight: '600', width: 92 },
+  sectorTxt: { color: colors.textMuted, fontSize: 11, marginLeft: 22, marginTop: 1 },
   cat: { borderRadius: radius.pill, paddingHorizontal: 8, paddingVertical: 2 },
   catTxt: { fontSize: 11, fontWeight: '700' },
   zonaTag: { color: colors.textMuted, fontSize: 11, marginLeft: 'auto' },

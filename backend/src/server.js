@@ -4,6 +4,7 @@ import cors from 'cors';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { connectDB } from './db.js';
+import { revisarRetrasos } from './geocercas.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -44,7 +45,15 @@ app.use('/api/auditoria', auditoriaRoutes);
 
 const PORT = process.env.PORT || 4000;
 connectDB()
-  .then(() => app.listen(PORT, () => console.log(`API escuchando en puerto ${PORT}`)))
+  .then(() => {
+    app.listen(PORT, () => console.log(`API escuchando en puerto ${PORT}`));
+    // Revisa cada 3 min si algún horario de zona venció sin que el camión llegara (avisos de RETRASO).
+    // No depende de que el conductor esté transmitiendo GPS en ese momento.
+    const INTERVALO_RETRASOS_MS = 3 * 60 * 1000;
+    setInterval(() => {
+      revisarRetrasos().catch((e) => console.error('revisarRetrasos', e.message));
+    }, INTERVALO_RETRASOS_MS);
+  })
   .catch((e) => {
     console.error('No se pudo iniciar:', e.message);
     process.exit(1);

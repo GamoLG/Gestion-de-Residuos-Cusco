@@ -9,6 +9,7 @@ const alertaSchema = new mongoose.Schema(
     mensaje: { type: String, required: true, trim: true },
     usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario' },
     ruta: { type: mongoose.Schema.Types.ObjectId, ref: 'Ruta', default: null },
+    zona: { type: mongoose.Schema.Types.ObjectId, ref: 'Zona', default: null },
     leida: { type: Boolean, default: false },
   },
   { timestamps: true }

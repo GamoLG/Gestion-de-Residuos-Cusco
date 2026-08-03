@@ -9,7 +9,9 @@ const horarioSchema = new mongoose.Schema(
   {
     zona: { type: mongoose.Schema.Types.ObjectId, ref: 'Zona', required: true },
     diaSemana: { type: Number, min: 0, max: 6, required: true },
-    hora: { type: String, required: true, trim: true }, // "06:30"
+    hora: { type: String, required: true, trim: true }, // "06:30" — inicio de la ventana
+    horaFin: { type: String, trim: true, default: null }, // fin de la ventana (ej. "11:00"); opcional
+    sector: { type: String, trim: true, default: '' }, // ej. "Av. de la Cultura", "Centro"
     tipoResiduo: { type: String, enum: CATEGORIAS_RESIDUO, default: 'NO_RECICLABLE' },
     activo: { type: Boolean, default: true },
   },
