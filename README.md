@@ -386,6 +386,6 @@ Base: `/api`
 ---
 
 ## 19. Equipo
-Jisbaj Gamarra Salas · Stephan Jhoel Cosio Loaiza · Luz Indira Ticona Felix
+Docente: Stephan Jhoel Cosio Loaiza
 
 **Repositorio:** https://github.com/GamoLG/Gestion-de-Residuos-Cusco
