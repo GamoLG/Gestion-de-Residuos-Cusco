@@ -21,7 +21,7 @@ function caja(lngMin, latMin, lngMax, latMax) {
 async function main() {
   await connectDB();
 
-  // ── Zonas (cubren el Cusco metropolitano) ─────────────────────────────────
+  // ── Zonas — los 8 distritos de la provincia del Cusco ─────────────────────
   const zonasDef = [
     { nombre: 'Centro Histórico', distrito: 'Cusco', color: '#58a6ff', geometry: caja(-71.9950, -13.5300, -71.9650, -13.4950) },
     { nombre: 'San Blas', distrito: 'Cusco', color: '#3fb950', geometry: caja(-71.9650, -13.5250, -71.9400, -13.4950) },
@@ -30,6 +30,12 @@ async function main() {
     // Ampliada para cubrir la Plaza de San Sebastián y el corredor de la Av. de la Cultura (UNSAAC)
     { nombre: 'San Sebastián', distrito: 'San Sebastián', color: '#f85149', geometry: caja(-71.9400, -13.5550, -71.8700, -13.4950) },
     { nombre: 'San Jerónimo', distrito: 'San Jerónimo', color: '#39c5cf', geometry: caja(-71.8700, -13.5600, -71.8300, -13.5100) },
+    // Poroy — pueblo camino a la estación de tren (Machu Picchu), noroeste de Santiago
+    { nombre: 'Poroy', distrito: 'Poroy', color: '#e3b341', geometry: caja(-72.0700, -13.5150, -72.0250, -13.4600) },
+    // Saylla — pueblo de las chicharronerías, en la carretera a Urcos, sureste de San Jerónimo
+    { nombre: 'Saylla', distrito: 'Saylla', color: '#ec6cb9', geometry: caja(-71.8900, -13.6200, -71.8400, -13.5600) },
+    // Ccorca — el distrito más rural y alejado, al suroeste de Santiago
+    { nombre: 'Ccorca', distrito: 'Ccorca', color: '#6e40c9', geometry: caja(-72.1300, -13.6600, -72.0250, -13.5550) },
   ];
   const zonas = {};
   for (const z of zonasDef) {
@@ -53,6 +59,9 @@ async function main() {
     { nombre: 'José Mamani', dni: '70010002' },
     { nombre: 'Pedro Ccahuana', dni: '70010003' },
     { nombre: 'Luis Quispe', dni: '70010004' },
+    { nombre: 'Rosa Mamani', dni: '70010005' },
+    { nombre: 'Teodoro Quispe', dni: '70010006' },
+    { nombre: 'Martina Ccahuana', dni: '70010007' },
   ];
   let i = 0;
   for (const o of opDef) {
@@ -72,6 +81,12 @@ async function main() {
     { nombre: 'Willy Apaza', dni: '70020005', zona: 'San Sebastián', latitud: -13.5345, longitud: -71.8797 },
     // Vive junto a la Av. de los Incas, San Jerónimo
     { nombre: 'Elena Quispe', dni: '70020006', zona: 'San Jerónimo', latitud: -13.5420, longitud: -71.8575 },
+    // Vive cerca de la Plaza y estación de tren de Poroy
+    { nombre: 'Percy Fernández', dni: '70020007', zona: 'Poroy', latitud: -13.4886, longitud: -72.0347 },
+    // Vive en la carretera a Urcos, Saylla
+    { nombre: 'Katty Sallo', dni: '70020008', zona: 'Saylla', latitud: -13.5883, longitud: -71.8637 },
+    // Vive en el centro de Ccorca
+    { nombre: 'Wilber Sutta', dni: '70020009', zona: 'Ccorca', latitud: -13.6167, longitud: -72.0667 },
   ];
   i = 0;
   for (const c of citDef) {
@@ -148,7 +163,42 @@ async function main() {
     },
     { upsert: true }
   );
-  console.log('✓ rutas: 4');
+  await Ruta.findOneAndUpdate(
+    { nombre: 'Ruta Poroy' },
+    {
+      nombre: 'Ruta Poroy', camionPlaca: 'X5E-345', operador: operadores[4]._id, zona: zonas['Poroy']._id,
+      estado: 'PENDIENTE',
+      paradas: [
+        { nombre: 'Estación de tren de Poroy', latitud: -13.4886, longitud: -72.0347, horaEstimada: '08:00' },
+        { nombre: 'Plaza de Poroy', latitud: -13.4870, longitud: -72.0330, horaEstimada: '08:20' },
+      ],
+    },
+    { upsert: true }
+  );
+  await Ruta.findOneAndUpdate(
+    { nombre: 'Ruta Saylla' },
+    {
+      nombre: 'Ruta Saylla', camionPlaca: 'X6F-678', operador: operadores[5]._id, zona: zonas['Saylla']._id,
+      estado: 'PENDIENTE',
+      paradas: [
+        { nombre: 'Carretera a Urcos - Saylla', latitud: -13.5883, longitud: -71.8637, horaEstimada: '09:00' },
+        { nombre: 'Plaza de Saylla', latitud: -13.5870, longitud: -71.8620, horaEstimada: '09:20' },
+      ],
+    },
+    { upsert: true }
+  );
+  await Ruta.findOneAndUpdate(
+    { nombre: 'Ruta Ccorca' },
+    {
+      nombre: 'Ruta Ccorca', camionPlaca: 'X7G-901', operador: operadores[6]._id, zona: zonas['Ccorca']._id,
+      estado: 'PENDIENTE',
+      paradas: [
+        { nombre: 'Plaza de Ccorca', latitud: -13.6167, longitud: -72.0667, horaEstimada: '08:00' },
+      ],
+    },
+    { upsert: true }
+  );
+  console.log('✓ rutas: 7');
 
   // ── Horarios de recojo por zona (realistas, con ventana horaria y sector) ─
   // diaSemana: 0=Domingo … 6=Sábado. Cada "sector" es una avenida/tramo del
@@ -187,6 +237,17 @@ async function main() {
     // San Jerónimo — lunes y martes en la mañana (Av. de los Incas)
     { zona: 'San Jerónimo', sector: 'Av. de los Incas', diaSemana: 1, hora: '07:00', horaFin: '10:00', tipoResiduo: 'NO_RECICLABLE' },
     { zona: 'San Jerónimo', sector: 'Av. de los Incas', diaSemana: 2, hora: '07:00', horaFin: '10:00', tipoResiduo: 'ORGANICO' },
+
+    // Poroy — pueblo pequeño, recojo 2 veces por semana
+    { zona: 'Poroy', sector: 'Poroy centro / Estación de tren', diaSemana: 3, hora: '08:00', horaFin: '10:00', tipoResiduo: 'NO_RECICLABLE' },
+    { zona: 'Poroy', sector: 'Poroy centro / Estación de tren', diaSemana: 6, hora: '08:00', horaFin: '10:00', tipoResiduo: 'RECICLABLE' },
+
+    // Saylla — pueblo de chicharronerías; mucho orgánico por los restaurantes, fin de semana con más turismo
+    { zona: 'Saylla', sector: 'Carretera a Urcos', diaSemana: 4, hora: '09:00', horaFin: '11:00', tipoResiduo: 'ORGANICO' },
+    { zona: 'Saylla', sector: 'Carretera a Urcos', diaSemana: 0, hora: '09:00', horaFin: '11:00', tipoResiduo: 'NO_RECICLABLE' },
+
+    // Ccorca — el más rural y alejado: una sola vez por semana, ventana amplia
+    { zona: 'Ccorca', sector: 'Ccorca centro', diaSemana: 5, hora: '08:00', horaFin: '11:00', tipoResiduo: 'NO_RECICLABLE' },
   ];
   for (const h of horariosDef) {
     const zonaId = zonas[h.zona]._id;
@@ -208,6 +269,9 @@ async function main() {
     ['Santiago', 'NO_RECICLABLE', 1750], ['Santiago', 'RECICLABLE', 220],
     ['San Sebastián', 'ORGANICO', 860], ['San Sebastián', 'NO_RECICLABLE', 1320],
     ['San Jerónimo', 'ORGANICO', 540], ['San Jerónimo', 'NO_RECICLABLE', 690],
+    ['Poroy', 'NO_RECICLABLE', 210], ['Poroy', 'RECICLABLE', 90],
+    ['Saylla', 'ORGANICO', 380], ['Saylla', 'NO_RECICLABLE', 160],
+    ['Ccorca', 'NO_RECICLABLE', 120],
   ];
   for (const [z, cat, kg] of recolecciones) {
     await Residuo.findOneAndUpdate(
