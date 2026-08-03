@@ -22,6 +22,7 @@ export default function EditarPerfil() {
   const [passActual, setPassActual] = useState('');
   const [passNueva, setPassNueva] = useState('');
   const [cambiando, setCambiando] = useState(false);
+  const [ubicando, setUbicando] = useState(false);
 
   const guardar = async () => {
     if (!nombre.trim()) return Alert.alert('Falta', 'El nombre es obligatorio');
@@ -38,25 +39,32 @@ export default function EditarPerfil() {
   };
 
   const actualizarUbicacion = async () => {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') return Alert.alert('Permiso', 'Activa la ubicación');
+    setUbicando(true);
     try {
-      const loc = await Location.getCurrentPositionAsync({});
-      const { latitud, longitud } = { latitud: loc.coords.latitude, longitud: loc.coords.longitude };
-      const { data } = await api.put('/usuarios/me', { latitud, longitud });
-      // el backend puede reasignar zona si se envía; detectamos zona con el endpoint público
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permiso', 'Activa el permiso de ubicación de la app en los ajustes del celular.');
+        return;
+      }
+      // Se pide la posición más reciente posible (nunca una guardada en caché del sistema).
+      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      const latitud = loc.coords.latitude, longitud = loc.coords.longitude;
+      await api.put('/usuarios/me', { latitud, longitud });
       const det = await api.post('/zonas/detect', { lat: latitud, lng: longitud });
+      const coords = `${latitud.toFixed(5)}, ${longitud.toFixed(5)}`;
       if (det.data?.data?.matched) {
-        await api.put('/usuarios/me', { zona: det.data.data.zona.id });
-        await actualizarUsuario({ latitud, longitud, zonaId: det.data.data.zona.id, zonaNombre: det.data.data.zona.nombre });
-        Alert.alert('Listo', `Ubicación actualizada. Tu zona: ${det.data.data.zona.nombre}`);
+        const zona = det.data.data.zona;
+        await api.put('/usuarios/me', { zona: zona.id });
+        await actualizarUsuario({ latitud, longitud, zonaId: zona.id, zonaNombre: zona.nombre });
+        Alert.alert('Ubicación detectada', `Coordenadas: ${coords}\nZona: ${zona.nombre}`);
       } else {
         await actualizarUsuario({ latitud, longitud });
-        Alert.alert('Listo', 'Ubicación actualizada (sin zona detectada)');
+        Alert.alert('Ubicación detectada', `Coordenadas: ${coords}\nNo caen dentro de ninguna zona registrada.`);
       }
-      void data;
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'No se pudo actualizar la ubicación');
+      Alert.alert('Error', e?.response?.data?.message || e?.message || 'No se pudo obtener tu ubicación GPS');
+    } finally {
+      setUbicando(false);
     }
   };
 
@@ -100,9 +108,9 @@ export default function EditarPerfil() {
         <Text style={s.secS}>
           {usuario?.zonaNombre ? `Zona actual: ${usuario.zonaNombre}` : 'Sin zona asignada'}. Usa tu GPS para actualizar tu domicilio y detectar tu zona.
         </Text>
-        <TouchableOpacity style={[s.btnGhost, { borderColor: acento }]} onPress={actualizarUbicacion}>
-          <Feather name="map-pin" size={16} color={acento} />
-          <Text style={[s.btnGhostTxt, { color: acento }]}>Actualizar mi ubicación (GPS)</Text>
+        <TouchableOpacity style={[s.btnGhost, { borderColor: acento }]} onPress={actualizarUbicacion} disabled={ubicando}>
+          {ubicando ? <ActivityIndicator color={acento} /> : <Feather name="map-pin" size={16} color={acento} />}
+          <Text style={[s.btnGhostTxt, { color: acento }]}>{ubicando ? 'Obteniendo ubicación…' : 'Actualizar mi ubicación (GPS)'}</Text>
         </TouchableOpacity>
       </View>
 
