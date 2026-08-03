@@ -1,7 +1,8 @@
 import { useState, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
 import api from '../../lib/api';
 import { useAuth } from '../../lib/auth';
 import { colors, radius, spacing, categoriaColor, DIAS_SEMANA, acentoDe } from '../../lib/theme';
@@ -19,27 +20,55 @@ export default function Horarios() {
   const [horarios, setHorarios] = useState<any[]>([]);
   const [alertas, setAlertas] = useState<any[]>([]);
   const [refrescando, setRefrescando] = useState(false);
+  const [zonaGPS, setZonaGPS] = useState<{ id: string; nombre: string } | null>(null);
+  const [detectando, setDetectando] = useState(false);
   const timer = useRef<any>(null);
+
+  // Detecta la zona SEGÚN LA UBICACIÓN ACTUAL (GPS), no solo la del perfil.
+  // Así, si estás físicamente en San Sebastián ves su horario, y si estás
+  // en el Centro ves el suyo, sin tener que ir a cambiar tu zona en Perfil.
+  const detectarZonaPorGPS = useCallback(async () => {
+    setDetectando(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') { setZonaGPS(null); return; }
+      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const { data } = await api.post('/zonas/detect', { lat: loc.coords.latitude, lng: loc.coords.longitude });
+      if (data.data?.matched) {
+        setZonaGPS({ id: data.data.zona.id, nombre: data.data.zona.nombre });
+      } else {
+        setZonaGPS(null); // fuera de toda zona conocida: se usa la del perfil como respaldo
+      }
+    } catch {
+      setZonaGPS(null);
+    } finally {
+      setDetectando(false);
+    }
+  }, []);
+
+  const zonaActivaId = zonaGPS?.id || usuario?.zonaId;
+  const zonaActivaNombre = zonaGPS?.nombre || usuario?.zonaNombre;
 
   const cargar = useCallback(async () => {
     try {
       const [h, a] = await Promise.all([
-        api.get(usuario?.zonaId ? `/horarios?zona=${usuario.zonaId}` : '/horarios'),
+        api.get(zonaActivaId ? `/horarios?zona=${zonaActivaId}` : '/horarios'),
         api.get('/alertas/mias'),
       ]);
       setHorarios(h.data.data || []);
       setAlertas((a.data.data || []).slice(0, 15));
     } catch {}
-  }, [usuario?.zonaId]);
+  }, [zonaActivaId]);
 
   useFocusEffect(
     useCallback(() => {
+      detectarZonaPorGPS();
       cargar();
       timer.current = setInterval(cargar, 8000); // refresco en vivo mientras la pantalla está abierta
       return () => clearInterval(timer.current);
-    }, [cargar])
+    }, [cargar, detectarZonaPorGPS])
   );
-  const onRefresh = async () => { setRefrescando(true); await cargar(); setRefrescando(false); };
+  const onRefresh = async () => { setRefrescando(true); await detectarZonaPorGPS(); await cargar(); setRefrescando(false); };
 
   const hoy = new Date().getDay();
   // Próximo recojo: el horario más cercano a partir de hoy
@@ -64,7 +93,20 @@ export default function Horarios() {
       refreshControl={<RefreshControl refreshing={refrescando} onRefresh={onRefresh} tintColor={acento} />}
     >
       <Text style={s.titulo}>Horarios de recojo</Text>
-      <Text style={s.sub}>{usuario?.zonaNombre ? `Zona: ${usuario.zonaNombre}` : 'Mostrando todas las zonas (asigna tu zona en Perfil)'}</Text>
+
+      <TouchableOpacity style={s.ubicacionBox} onPress={detectarZonaPorGPS} disabled={detectando}>
+        <Feather name="map-pin" size={15} color={zonaGPS ? colors.success : colors.textMuted} />
+        <Text style={s.ubicacionTxt}>
+          {detectando
+            ? 'Detectando tu ubicación…'
+            : zonaGPS
+              ? `Según tu ubicación actual: ${zonaGPS.nombre}`
+              : zonaActivaNombre
+                ? `Zona de tu perfil: ${zonaActivaNombre}`
+                : 'Sin zona detectada — activa la ubicación'}
+        </Text>
+        {detectando ? <ActivityIndicator size="small" color={acento} /> : <Feather name="refresh-cw" size={14} color={colors.textMuted} />}
+      </TouchableOpacity>
 
       {proximo && (
         <View style={[s.proximo, { borderColor: acento }]}>
@@ -93,7 +135,7 @@ export default function Horarios() {
                       {CAT_LABEL[h.tipoResiduo] || h.tipoResiduo}
                     </Text>
                   </View>
-                  {!usuario?.zonaId && <Text style={s.zonaTag}>{h.zona?.nombre}</Text>}
+                  {!zonaActivaId && <Text style={s.zonaTag}>{h.zona?.nombre}</Text>}
                 </View>
                 {!!h.sector && <Text style={s.sectorTxt}>📍 {h.sector}</Text>}
               </View>
@@ -101,7 +143,7 @@ export default function Horarios() {
           </View>
         ) : null
       )}
-      {horarios.length === 0 && <Text style={s.vacio}>Aún no hay horarios registrados para tu zona.</Text>}
+      {horarios.length === 0 && <Text style={s.vacio}>Aún no hay horarios registrados para esta zona.</Text>}
 
       <View style={s.avisosHead}>
         <Text style={s.sec}>Avisos del camión</Text>
@@ -129,7 +171,8 @@ export default function Horarios() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   titulo: { color: colors.textPrimary, fontSize: 20, fontWeight: '700' },
-  sub: { color: colors.textSecondary, fontSize: 13, marginTop: 2, marginBottom: spacing.lg },
+  ubicacionBox: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.bgElevated, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, marginTop: spacing.sm, marginBottom: spacing.lg },
+  ubicacionTxt: { flex: 1, color: colors.textSecondary, fontSize: 12, fontWeight: '600' },
   proximo: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.bgElevated, borderWidth: 1.5, borderRadius: radius.lg, padding: spacing.lg, marginBottom: spacing.lg },
   proximoT: { color: colors.textSecondary, fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
   proximoV: { color: colors.textPrimary, fontSize: 15, fontWeight: '700', marginTop: 2 },
