@@ -25,15 +25,18 @@ async function main() {
   const zonasDef = [
     { nombre: 'Centro Histórico', distrito: 'Cusco', color: '#58a6ff', geometry: caja(-71.9950, -13.5300, -71.9650, -13.4950) },
     { nombre: 'San Blas', distrito: 'Cusco', color: '#3fb950', geometry: caja(-71.9650, -13.5250, -71.9400, -13.4950) },
-    { nombre: 'Wanchaq', distrito: 'Wanchaq', color: '#d29922', geometry: caja(-71.9700, -13.5550, -71.9400, -13.5250) },
+    // Ampliada al norte para cubrir la UNSAAC (Av. de la Cultura, real: -13.5218,-71.9588)
+    { nombre: 'Wanchaq', distrito: 'Wanchaq', color: '#d29922', geometry: caja(-71.9700, -13.5550, -71.9400, -13.5200) },
     { nombre: 'Santiago', distrito: 'Santiago', color: '#a371f7', geometry: caja(-72.0250, -13.5550, -71.9850, -13.5150) },
-    // Ampliada para cubrir la Plaza de San Sebastián y el corredor de la Av. de la Cultura (UNSAAC)
-    { nombre: 'San Sebastián', distrito: 'San Sebastián', color: '#f85149', geometry: caja(-71.9400, -13.5550, -71.8700, -13.4950) },
-    { nombre: 'San Jerónimo', distrito: 'San Jerónimo', color: '#39c5cf', geometry: caja(-71.8700, -13.5600, -71.8300, -13.5100) },
+    // Verificada con la Plaza de Armas de San Sebastián real (-13.5301,-71.9373)
+    { nombre: 'San Sebastián', distrito: 'San Sebastián', color: '#f85149', geometry: caja(-71.9400, -13.5550, -71.8900, -13.4950) },
+    // Verificada con la Plaza Chimpahuaylla real (-13.5511,-71.8844); límite este en -71.8500
+    // para no solaparse con Saylla (que empieza justo después, más al sureste)
+    { nombre: 'San Jerónimo', distrito: 'San Jerónimo', color: '#39c5cf', geometry: caja(-71.8900, -13.5600, -71.8500, -13.5100) },
     // Poroy — pueblo camino a la estación de tren (Machu Picchu), noroeste de Santiago
     { nombre: 'Poroy', distrito: 'Poroy', color: '#e3b341', geometry: caja(-72.0700, -13.5150, -72.0250, -13.4600) },
-    // Saylla — pueblo de las chicharronerías, en la carretera a Urcos, sureste de San Jerónimo
-    { nombre: 'Saylla', distrito: 'Saylla', color: '#ec6cb9', geometry: caja(-71.8900, -13.6200, -71.8400, -13.5600) },
+    // Saylla — pueblo de las chicharronerías, en la carretera a Urcos (real: -13.5478,-71.8334)
+    { nombre: 'Saylla', distrito: 'Saylla', color: '#ec6cb9', geometry: caja(-71.8500, -13.6200, -71.8100, -13.5400) },
     // Ccorca — el distrito más rural y alejado, al suroeste de Santiago
     { nombre: 'Ccorca', distrito: 'Ccorca', color: '#6e40c9', geometry: caja(-72.1300, -13.6600, -72.0250, -13.5550) },
   ];
@@ -75,20 +78,22 @@ async function main() {
 
   const citDef = [
     { nombre: 'María Condori', dni: '70020001', zona: 'Centro Histórico', latitud: -13.5160, longitud: -71.9770 },
-    { nombre: 'Rosa Huamán', dni: '70020002', zona: 'Wanchaq', latitud: -13.5400, longitud: -71.9500 },
-    { nombre: 'Juan Choque', dni: '70020003', zona: 'Santiago', latitud: -13.5350, longitud: -72.0050 },
-    // Vive junto a la Av. de la Cultura, cerca de la UNSAAC
-    { nombre: 'Ana Ttito', dni: '70020004', zona: 'San Sebastián', latitud: -13.5498, longitud: -71.9285 },
-    // Vive cerca de la Plaza de San Sebastián
-    { nombre: 'Willy Apaza', dni: '70020005', zona: 'San Sebastián', latitud: -13.5345, longitud: -71.8797 },
-    // Vive junto a la Av. de los Incas, San Jerónimo
-    { nombre: 'Elena Quispe', dni: '70020006', zona: 'San Jerónimo', latitud: -13.5420, longitud: -71.8575 },
+    // Vive cerca de la Plaza Pachacútec (real: -13.5317,-71.9683)
+    { nombre: 'Rosa Huamán', dni: '70020002', zona: 'Wanchaq', latitud: -13.5317, longitud: -71.9683 },
+    // Vive cerca de la Plaza Santiago (real: -13.5253,-71.9833; ajustado para caer dentro de la zona)
+    { nombre: 'Juan Choque', dni: '70020003', zona: 'Santiago', latitud: -13.5253, longitud: -71.9860 },
+    // Vive junto a la Av. de la Cultura, cerca de la UNSAAC (real: -13.5218,-71.9588)
+    { nombre: 'Ana Ttito', dni: '70020004', zona: 'San Sebastián', latitud: -13.5218, longitud: -71.9588 },
+    // Vive cerca de la Plaza de San Sebastián (real: -13.5301,-71.9373)
+    { nombre: 'Willy Apaza', dni: '70020005', zona: 'San Sebastián', latitud: -13.5301, longitud: -71.9373 },
+    // Vive cerca de la Plaza Chimpahuaylla, San Jerónimo (real: -13.5511,-71.8844)
+    { nombre: 'Elena Quispe', dni: '70020006', zona: 'San Jerónimo', latitud: -13.5511, longitud: -71.8844 },
     // Vive cerca de la Plaza y estación de tren de Poroy
     { nombre: 'Percy Fernández', dni: '70020007', zona: 'Poroy', latitud: -13.4886, longitud: -72.0347 },
-    // Vive en la carretera a Urcos, Saylla
-    { nombre: 'Katty Sallo', dni: '70020008', zona: 'Saylla', latitud: -13.5883, longitud: -71.8637 },
-    // Vive en el centro de Ccorca
-    { nombre: 'Wilber Sutta', dni: '70020009', zona: 'Ccorca', latitud: -13.6167, longitud: -72.0667 },
+    // Vive en Saylla (real: -13.5478,-71.8334)
+    { nombre: 'Katty Sallo', dni: '70020008', zona: 'Saylla', latitud: -13.5478, longitud: -71.8334 },
+    // Vive en el centro de Ccorca (real: -13.5881,-72.0892)
+    { nombre: 'Wilber Sutta', dni: '70020009', zona: 'Ccorca', latitud: -13.5881, longitud: -72.0892 },
     // Vive en la Cuesta San Blas
     { nombre: 'Nayra Puma', dni: '70020010', zona: 'San Blas', latitud: -13.5140, longitud: -71.9530 },
   ];
@@ -136,21 +141,27 @@ async function main() {
       nombre: 'Ruta Wanchaq PM', camionPlaca: 'X2B-456', operador: operadores[1]._id, zona: zonas['Wanchaq']._id,
       estado: 'PENDIENTE',
       paradas: [
-        { nombre: 'Óvalo Pachacútec', latitud: -13.5310, longitud: -71.9575, horaEstimada: '14:00' },
-        { nombre: 'Av. La Cultura (Wanchaq)', latitud: -13.5260, longitud: -71.9480, horaEstimada: '15:00' },
+        { nombre: 'Plaza Pachacútec', latitud: -13.5317, longitud: -71.9683, horaEstimada: '14:00' },
+        { nombre: 'Av. de la Cultura - Marcavalle', latitud: -13.5274, longitud: -71.9462, horaEstimada: '15:00' },
       ],
     },
     { upsert: true }
   );
+  // Ruta real y completa de la Av. de la Cultura: desde Limacpampa (centro) hasta
+  // Santa Úrsula, pasando por la UNSAAC — coordenadas verificadas con OpenStreetMap.
+  // Se busca por placa (no por nombre) porque esta ruta se renombró; así se actualiza
+  // el documento existente en vez de crear uno duplicado.
   await Ruta.findOneAndUpdate(
-    { nombre: 'Ruta San Sebastián - Av. Cultura' },
+    { camionPlaca: 'X3C-789' },
     {
-      nombre: 'Ruta San Sebastián - Av. Cultura', camionPlaca: 'X3C-789', operador: operadores[2]._id, zona: zonas['San Sebastián']._id,
+      nombre: 'Ruta Av. de la Cultura', camionPlaca: 'X3C-789', operador: operadores[2]._id, zona: zonas['San Sebastián']._id,
       estado: 'PENDIENTE',
       paradas: [
-        { nombre: 'Av. de la Cultura - UNSAAC', latitud: -13.5498, longitud: -71.9285, horaEstimada: '15:00' },
-        { nombre: 'Puente Angostura', latitud: -13.5420, longitud: -71.9080, horaEstimada: '15:20' },
-        { nombre: 'Plaza de San Sebastián', latitud: -13.5345, longitud: -71.8797, horaEstimada: '15:45' },
+        { nombre: 'Limacpampa (inicio Av. de la Cultura)', latitud: -13.5198, longitud: -71.9737, horaEstimada: '15:00' },
+        { nombre: 'UNSAAC', latitud: -13.5218, longitud: -71.9588, horaEstimada: '15:15' },
+        { nombre: 'Av. de la Cultura - Marcavalle', latitud: -13.5274, longitud: -71.9462, horaEstimada: '15:30' },
+        { nombre: 'Urb. Santa Úrsula', latitud: -13.5292, longitud: -71.9423, horaEstimada: '15:40' },
+        { nombre: 'Plaza de San Sebastián', latitud: -13.5301, longitud: -71.9373, horaEstimada: '15:55' },
       ],
     },
     { upsert: true }
@@ -161,8 +172,8 @@ async function main() {
       nombre: 'Ruta San Jerónimo Mañana', camionPlaca: 'X4D-012', operador: operadores[3]._id, zona: zonas['San Jerónimo']._id,
       estado: 'PENDIENTE',
       paradas: [
-        { nombre: 'Av. de los Incas', latitud: -13.5420, longitud: -71.8575, horaEstimada: '07:00' },
-        { nombre: 'Plaza de San Jerónimo', latitud: -13.5432, longitud: -71.8590, horaEstimada: '07:30' },
+        { nombre: 'Av. de los Incas', latitud: -13.5480, longitud: -71.8750, horaEstimada: '07:00' },
+        { nombre: 'Plaza Chimpahuaylla, San Jerónimo', latitud: -13.5511, longitud: -71.8844, horaEstimada: '07:30' },
       ],
     },
     { upsert: true }
@@ -185,8 +196,8 @@ async function main() {
       nombre: 'Ruta Saylla', camionPlaca: 'X6F-678', operador: operadores[5]._id, zona: zonas['Saylla']._id,
       estado: 'PENDIENTE',
       paradas: [
-        { nombre: 'Carretera a Urcos - Saylla', latitud: -13.5883, longitud: -71.8637, horaEstimada: '09:00' },
-        { nombre: 'Plaza de Saylla', latitud: -13.5870, longitud: -71.8620, horaEstimada: '09:20' },
+        { nombre: 'Saylla (carretera a Urcos)', latitud: -13.5478, longitud: -71.8334, horaEstimada: '09:00' },
+        { nombre: 'Plaza de Saylla', latitud: -13.5490, longitud: -71.8320, horaEstimada: '09:20' },
       ],
     },
     { upsert: true }
@@ -197,7 +208,7 @@ async function main() {
       nombre: 'Ruta Ccorca', camionPlaca: 'X7G-901', operador: operadores[6]._id, zona: zonas['Ccorca']._id,
       estado: 'PENDIENTE',
       paradas: [
-        { nombre: 'Plaza de Ccorca', latitud: -13.6167, longitud: -72.0667, horaEstimada: '08:00' },
+        { nombre: 'Plaza de Ccorca', latitud: -13.5881, longitud: -72.0892, horaEstimada: '08:00' },
       ],
     },
     { upsert: true }
@@ -221,7 +232,7 @@ async function main() {
       estado: 'PENDIENTE',
       paradas: [
         { nombre: 'Mercado de Santiago', latitud: -13.5350, longitud: -72.0050, horaEstimada: '06:30' },
-        { nombre: 'Av. Belén', latitud: -13.5300, longitud: -71.9980, horaEstimada: '07:00' },
+        { nombre: 'Plaza Santiago', latitud: -13.5253, longitud: -71.9860, horaEstimada: '07:00' },
       ],
     },
     { upsert: true }
