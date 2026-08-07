@@ -25,6 +25,10 @@ const rutaSchema = new mongoose.Schema(
       },
     ],
     distanciaKm: { type: Number, default: 0 },
+    // Recorrido planificado siguiendo las calles reales (calculado con OSRM,
+    // no una línea recta entre paradas). Si está vacío, el mapa cae de vuelta
+    // a unir las paradas en línea recta.
+    recorridoPlanificado: [{ latitud: Number, longitud: Number }],
     fechaInicio: Date,
     fechaFin: Date,
   },

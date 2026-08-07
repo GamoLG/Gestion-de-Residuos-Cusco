@@ -122,7 +122,10 @@ export default function MiRuta() {
     }
   });
   const pts = paradas.filter((p: any) => p.latitud && p.longitud).map((p: any) => ({ lat: p.latitud, lng: p.longitud }));
-  if (pts.length >= 2) lineas.push({ id: 'plan', puntos: pts, color: VERDE, discontinua: true });
+  // Recorrido planificado por las calles reales (OSRM); si no hay datos guardados, línea recta entre paradas
+  const real = (ruta?.recorridoPlanificado || []).map((p: any) => ({ lat: p.latitud, lng: p.longitud }));
+  if (real.length >= 2) lineas.push({ id: 'plan', puntos: real, color: VERDE, discontinua: true });
+  else if (pts.length >= 2) lineas.push({ id: 'plan', puntos: pts, color: VERDE, discontinua: true });
 
   if (!ruta) {
     return (

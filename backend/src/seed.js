@@ -7,6 +7,7 @@ import Ruta from './models/Ruta.js';
 import Residuo from './models/Residuo.js';
 import Horario from './models/Horario.js';
 import Incidente from './models/Incidente.js';
+import { calcularRutaReal } from './ruteo.js';
 import mongoose from 'mongoose';
 
 function caja(lngMin, latMin, lngMax, latMax) {
@@ -121,41 +122,30 @@ async function main() {
   }
   console.log('✓ tipos de residuo:', residuos.length);
 
-  // ── Rutas ─────────────────────────────────────────────────────────────────
-  await Ruta.findOneAndUpdate(
-    { nombre: 'Ruta Centro AM' },
+  // ── Rutas — el recorrido planificado sigue las CALLES REALES (OSRM), ──────
+  // no una línea recta entre paradas (evita que "atraviese" manzanas).
+  const rutasDef = [
     {
-      nombre: 'Ruta Centro AM', camionPlaca: 'X1A-123', operador: operadores[0]._id, zona: zonas['Centro Histórico']._id,
-      estado: 'PENDIENTE',
+      nombre: 'Ruta Centro AM', camionPlaca: 'X1A-123', operadorIdx: 0, zona: 'Centro Histórico',
       paradas: [
         { nombre: 'Plaza de Armas', latitud: -13.5163, longitud: -71.9781, horaEstimada: '06:00' },
         { nombre: 'Mercado San Pedro', latitud: -13.5197, longitud: -71.9815, horaEstimada: '07:00' },
         { nombre: 'Av. El Sol', latitud: -13.5210, longitud: -71.9770, horaEstimada: '07:30' },
       ],
     },
-    { upsert: true }
-  );
-  await Ruta.findOneAndUpdate(
-    { nombre: 'Ruta Wanchaq PM' },
     {
-      nombre: 'Ruta Wanchaq PM', camionPlaca: 'X2B-456', operador: operadores[1]._id, zona: zonas['Wanchaq']._id,
-      estado: 'PENDIENTE',
+      nombre: 'Ruta Wanchaq PM', camionPlaca: 'X2B-456', operadorIdx: 1, zona: 'Wanchaq',
       paradas: [
         { nombre: 'Plaza Pachacútec', latitud: -13.5317, longitud: -71.9683, horaEstimada: '14:00' },
         { nombre: 'Av. de la Cultura - Marcavalle', latitud: -13.5274, longitud: -71.9462, horaEstimada: '15:00' },
       ],
     },
-    { upsert: true }
-  );
-  // Ruta real y completa de la Av. de la Cultura: desde Limacpampa (centro) hasta
-  // Santa Úrsula, pasando por la UNSAAC — coordenadas verificadas con OpenStreetMap.
-  // Se busca por placa (no por nombre) porque esta ruta se renombró; así se actualiza
-  // el documento existente en vez de crear uno duplicado.
-  await Ruta.findOneAndUpdate(
-    { camionPlaca: 'X3C-789' },
+    // Ruta real y completa de la Av. de la Cultura: desde Limacpampa (centro) hasta
+    // Santa Úrsula, pasando por la UNSAAC — coordenadas verificadas con OpenStreetMap.
+    // buscarPor: 'camionPlaca' porque esta ruta se renombró; así se actualiza el
+    // documento existente en vez de crear uno duplicado.
     {
-      nombre: 'Ruta Av. de la Cultura', camionPlaca: 'X3C-789', operador: operadores[2]._id, zona: zonas['San Sebastián']._id,
-      estado: 'PENDIENTE',
+      nombre: 'Ruta Av. de la Cultura', camionPlaca: 'X3C-789', operadorIdx: 2, zona: 'San Sebastián', buscarPor: 'camionPlaca',
       paradas: [
         { nombre: 'Limacpampa (inicio Av. de la Cultura)', latitud: -13.5198, longitud: -71.9737, horaEstimada: '15:00' },
         { nombre: 'UNSAAC', latitud: -13.5218, longitud: -71.9588, horaEstimada: '15:15' },
@@ -164,80 +154,63 @@ async function main() {
         { nombre: 'Plaza de San Sebastián', latitud: -13.5301, longitud: -71.9373, horaEstimada: '15:55' },
       ],
     },
-    { upsert: true }
-  );
-  await Ruta.findOneAndUpdate(
-    { nombre: 'Ruta San Jerónimo Mañana' },
     {
-      nombre: 'Ruta San Jerónimo Mañana', camionPlaca: 'X4D-012', operador: operadores[3]._id, zona: zonas['San Jerónimo']._id,
-      estado: 'PENDIENTE',
+      nombre: 'Ruta San Jerónimo Mañana', camionPlaca: 'X4D-012', operadorIdx: 3, zona: 'San Jerónimo',
       paradas: [
         { nombre: 'Av. de los Incas', latitud: -13.5480, longitud: -71.8750, horaEstimada: '07:00' },
         { nombre: 'Plaza Chimpahuaylla, San Jerónimo', latitud: -13.5511, longitud: -71.8844, horaEstimada: '07:30' },
       ],
     },
-    { upsert: true }
-  );
-  await Ruta.findOneAndUpdate(
-    { nombre: 'Ruta Poroy' },
     {
-      nombre: 'Ruta Poroy', camionPlaca: 'X5E-345', operador: operadores[4]._id, zona: zonas['Poroy']._id,
-      estado: 'PENDIENTE',
+      nombre: 'Ruta Poroy', camionPlaca: 'X5E-345', operadorIdx: 4, zona: 'Poroy',
       paradas: [
         { nombre: 'Estación de tren de Poroy', latitud: -13.4886, longitud: -72.0347, horaEstimada: '08:00' },
         { nombre: 'Plaza de Poroy', latitud: -13.4870, longitud: -72.0330, horaEstimada: '08:20' },
       ],
     },
-    { upsert: true }
-  );
-  await Ruta.findOneAndUpdate(
-    { nombre: 'Ruta Saylla' },
     {
-      nombre: 'Ruta Saylla', camionPlaca: 'X6F-678', operador: operadores[5]._id, zona: zonas['Saylla']._id,
-      estado: 'PENDIENTE',
+      nombre: 'Ruta Saylla', camionPlaca: 'X6F-678', operadorIdx: 5, zona: 'Saylla',
       paradas: [
         { nombre: 'Saylla (carretera a Urcos)', latitud: -13.5478, longitud: -71.8334, horaEstimada: '09:00' },
         { nombre: 'Plaza de Saylla', latitud: -13.5490, longitud: -71.8320, horaEstimada: '09:20' },
       ],
     },
-    { upsert: true }
-  );
-  await Ruta.findOneAndUpdate(
-    { nombre: 'Ruta Ccorca' },
     {
-      nombre: 'Ruta Ccorca', camionPlaca: 'X7G-901', operador: operadores[6]._id, zona: zonas['Ccorca']._id,
-      estado: 'PENDIENTE',
+      nombre: 'Ruta Ccorca', camionPlaca: 'X7G-901', operadorIdx: 6, zona: 'Ccorca',
       paradas: [
         { nombre: 'Plaza de Ccorca', latitud: -13.5881, longitud: -72.0892, horaEstimada: '08:00' },
       ],
     },
-    { upsert: true }
-  );
-  await Ruta.findOneAndUpdate(
-    { nombre: 'Ruta San Blas' },
     {
-      nombre: 'Ruta San Blas', camionPlaca: 'X8H-234', operador: operadores[7]._id, zona: zonas['San Blas']._id,
-      estado: 'PENDIENTE',
+      nombre: 'Ruta San Blas', camionPlaca: 'X8H-234', operadorIdx: 7, zona: 'San Blas',
       paradas: [
         { nombre: 'Cuesta San Blas', latitud: -13.5140, longitud: -71.9530, horaEstimada: '07:00' },
         { nombre: 'Calle Tandapata', latitud: -13.5120, longitud: -71.9560, horaEstimada: '07:20' },
       ],
     },
-    { upsert: true }
-  );
-  await Ruta.findOneAndUpdate(
-    { nombre: 'Ruta Santiago' },
     {
-      nombre: 'Ruta Santiago', camionPlaca: 'X9I-567', operador: operadores[8]._id, zona: zonas['Santiago']._id,
-      estado: 'PENDIENTE',
+      nombre: 'Ruta Santiago', camionPlaca: 'X9I-567', operadorIdx: 8, zona: 'Santiago',
       paradas: [
         { nombre: 'Mercado de Santiago', latitud: -13.5350, longitud: -72.0050, horaEstimada: '06:30' },
         { nombre: 'Plaza Santiago', latitud: -13.5253, longitud: -71.9860, horaEstimada: '07:00' },
       ],
     },
-    { upsert: true }
-  );
-  console.log('✓ rutas: 9');
+  ];
+
+  for (const r of rutasDef) {
+    const filtro = r.buscarPor === 'camionPlaca' ? { camionPlaca: r.camionPlaca } : { nombre: r.nombre };
+    const recorridoPlanificado = (await calcularRutaReal(r.paradas)) || [];
+    await Ruta.findOneAndUpdate(
+      filtro,
+      {
+        nombre: r.nombre, camionPlaca: r.camionPlaca, operador: operadores[r.operadorIdx]._id, zona: zonas[r.zona]._id,
+        estado: 'PENDIENTE', paradas: r.paradas, recorridoPlanificado,
+      },
+      { upsert: true }
+    );
+    console.log(`  · ${r.nombre}: ${recorridoPlanificado.length ? recorridoPlanificado.length + ' puntos reales' : 'sin recorrido (línea recta)'}`);
+  }
+  console.log('✓ rutas:', rutasDef.length);
 
   // ── Horarios de recojo por zona (realistas, con ventana horaria y sector) ─
   // diaSemana: 0=Domingo … 6=Sábado. Cada "sector" es una avenida/tramo del

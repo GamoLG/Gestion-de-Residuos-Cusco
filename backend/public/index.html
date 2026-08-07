@@ -312,8 +312,10 @@ async function vResumen(){
       capa.clearLayers();
       for(const r of rutas){
         (r.paradas||[]).forEach(p=>{ if(p.latitud) L.circleMarker([p.latitud,p.longitud],{radius:6,color:p.atendida?'#3fb950':'#8b949e',fillOpacity:.9}).bindPopup(esc(p.nombre||'Parada')+(p.atendida?' ✅':' ⏳')).addTo(capa); });
-        const pts=(r.paradas||[]).filter(p=>p.latitud).map(p=>[p.latitud,p.longitud]);
-        if(pts.length>1) L.polyline(pts,{color:'#a371f7',dashArray:'8 8',weight:3}).addTo(capa);
+        // Recorrido planificado por las calles reales (OSRM); si no hay datos guardados, línea recta entre paradas
+        const real=(r.recorridoPlanificado||[]).filter(p=>p.latitud).map(p=>[p.latitud,p.longitud]);
+        if(real.length>1){ L.polyline(real,{color:'#a371f7',dashArray:'8 8',weight:3}).addTo(capa); }
+        else{ const pts=(r.paradas||[]).filter(p=>p.latitud).map(p=>[p.latitud,p.longitud]); if(pts.length>1) L.polyline(pts,{color:'#a371f7',dashArray:'8 8',weight:3}).addTo(capa); }
         if(r.latitudActual) L.marker([r.latitudActual,r.longitudActual],{icon:L.divIcon({className:'',html:'<div class="pulsoWrap"><div class="pulsoDot"></div><div class="pulsoEmo">🚛</div></div>',iconSize:[34,34],iconAnchor:[17,17]})}).bindPopup('<b>'+esc(r.nombre)+'</b><br>'+esc(r.camionPlaca||'')+' · en vivo').addTo(capa);
         try{
           const tz=await api('/rutas/'+r._id+'/traza');

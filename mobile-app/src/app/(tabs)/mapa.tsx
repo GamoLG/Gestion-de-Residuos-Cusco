@@ -52,8 +52,16 @@ export default function Mapa() {
             });
           }
         });
-        const puntos = paradas.filter((p: any) => p.latitud && p.longitud).map((p: any) => ({ lat: p.latitud, lng: p.longitud }));
-        if (puntos.length >= 2) ls.push({ id: `plan-${r._id}`, puntos, color: r.zona?.color || colors.primary, discontinua: true });
+        // Recorrido planificado: sigue las calles reales (calculado con OSRM al
+        // sembrar los datos). Si no hay datos guardados, cae de vuelta a unir
+        // las paradas en línea recta.
+        const real = (r.recorridoPlanificado || []).map((p: any) => ({ lat: p.latitud, lng: p.longitud }));
+        if (real.length >= 2) {
+          ls.push({ id: `plan-${r._id}`, puntos: real, color: r.zona?.color || colors.primary, discontinua: true });
+        } else {
+          const puntos = paradas.filter((p: any) => p.latitud && p.longitud).map((p: any) => ({ lat: p.latitud, lng: p.longitud }));
+          if (puntos.length >= 2) ls.push({ id: `plan-${r._id}`, puntos, color: r.zona?.color || colors.primary, discontinua: true });
+        }
 
         // Recorrido real del camión (traza GPS)
         try {
