@@ -4,6 +4,7 @@ import TrazaGPS from '../models/TrazaGPS.js';
 import Usuario from '../models/Usuario.js';
 import { auditar } from '../models/Auditoria.js';
 import { evaluarGeocercas, etaHasta } from '../geocercas.js';
+import { calcularRutaReal } from '../ruteo.js';
 import { autenticar, permitir } from '../middleware/auth.js';
 import { ok, fail } from '../utils.js';
 
@@ -60,14 +61,24 @@ router.get('/:id/eta', autenticar, async (req, res) => {
 
 // POST /api/rutas  (admin)
 router.post('/', autenticar, permitir(...ADMIN), async (req, res) => {
-  const ruta = await Ruta.create(req.body);
+  const body = { ...req.body };
+  if (Array.isArray(body.paradas) && body.paradas.length >= 2) {
+    body.recorridoPlanificado = (await calcularRutaReal(body.paradas)) || [];
+  }
+  const ruta = await Ruta.create(body);
   await auditar(req, 'CREAR', 'Ruta', ruta._id, ruta.nombre);
   return ok(res, ruta, 'Ruta creada', 201);
 });
 
 // PUT /api/rutas/:id  (admin — editar)
+// Si vienen paradas nuevas, recalcula el recorrido real por las calles (OSRM)
+// para que el mapa no quede con la línea recta anterior desactualizada.
 router.put('/:id', autenticar, permitir(...ADMIN), async (req, res) => {
-  const ruta = await Ruta.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  const body = { ...req.body };
+  if (Array.isArray(body.paradas)) {
+    body.recorridoPlanificado = body.paradas.length >= 2 ? (await calcularRutaReal(body.paradas)) || [] : [];
+  }
+  const ruta = await Ruta.findByIdAndUpdate(req.params.id, body, { new: true });
   if (!ruta) return fail(res, 'Ruta no encontrada', 404);
   await auditar(req, 'EDITAR', 'Ruta', ruta._id, ruta.nombre);
   return ok(res, ruta, 'Ruta actualizada');

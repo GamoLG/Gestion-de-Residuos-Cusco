@@ -45,6 +45,17 @@
   .confirmMsg{color:var(--tx2);font-size:13px;line-height:1.5}
   .confirmBotones{display:flex;gap:10px;margin-top:20px}
   .confirmBotones button{flex:1}
+  .paradasCard{background:var(--elev);border:1px solid var(--bd);border-radius:16px;padding:22px;width:100%;max-width:640px;max-height:88vh;display:flex;flex-direction:column}
+  .paradasHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+  #paradasMapa{height:320px;border-radius:10px;border:1px solid var(--bd);overflow:hidden}
+  #paradasLista{overflow-y:auto;max-height:180px;margin-top:12px}
+  .paradaFila{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--bd);font-size:13px}
+  .paradaFila .n{width:22px;height:22px;border-radius:50%;background:var(--surf);color:var(--tx2);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .paradaFila .campos{flex:1;display:flex;gap:8px;min-width:0}
+  .paradaFila input{background:var(--bg);border:1px solid var(--bd);border-radius:6px;color:var(--tx);padding:6px 8px;font-size:12.5px}
+  .paradaFila input.nombre{flex:1;min-width:0}
+  .paradaFila input.hora{width:70px}
+  .paradaFila button{background:transparent;border:none;color:var(--dang);cursor:pointer;font-size:15px;flex-shrink:0}
 
   /* App */
   #app{display:flex;min-height:100vh}
@@ -129,6 +140,25 @@
     <div class="confirmBotones">
       <button class="btn ghost" style="margin:0" onclick="cerrarConfirm()">Cancelar</button>
       <button class="btn" id="confirmBtn" style="margin:0;background:var(--dang)">Salir</button>
+    </div>
+  </div>
+</div>
+
+<!-- Selector de paradas en mapa (clic para ubicar, como Google Maps) -->
+<div id="paradasOverlay" class="confirmOverlay hidden">
+  <div class="paradasCard">
+    <div class="paradasHead">
+      <div>
+        <div class="confirmTitulo" style="text-align:left">📍 Paradas de <span id="paradasRutaNombre"></span></div>
+        <div class="muted" style="font-size:12px">Toca el mapa para agregar una parada en ese punto</div>
+      </div>
+      <button class="btn ghost sm" onclick="cerrarParadasMapa()">Cerrar</button>
+    </div>
+    <div id="paradasMapa"></div>
+    <div id="paradasLista"></div>
+    <div class="confirmBotones">
+      <button class="btn ghost" style="margin:0" onclick="cerrarParadasMapa()">Cancelar</button>
+      <button class="btn okb" style="margin:0" onclick="guardarParadasMapa()">Guardar paradas</button>
     </div>
   </div>
 </div>
@@ -435,7 +465,7 @@ async function vRutas(){
       <td><select class="mini" onchange="editarRuta('${r._id}',{operador:this.value||null})"><option value="">—</option>${ops.map(o=>`<option value="${o._id}" ${String(r.operador?._id||r.operador)===String(o._id)?'selected':''}>${esc(o.nombre)}</option>`).join('')}</select></td>
       <td>${esc(r.camionPlaca||'—')}</td><td>${at}/${(r.paradas||[]).length}</td><td>${pill(r.estado)}</td>
       <td><select class="mini" onchange="estadoRuta('${r._id}',this.value)">${estados.map(e=>`<option ${e===r.estado?'selected':''}>${e}</option>`).join('')}</select>
-          <button class="mini" onclick="agregarParada('${r._id}')">📍 Parada</button>
+          <button class="mini" onclick="abrirParadasMapa('${r._id}')">📍 Paradas (${(r.paradas||[]).length})</button>
           <button class="mini rojo" onclick="eliminarRuta('${r._id}','${esc(r.nombre)}')">🗑</button></td></tr>`;
     }).join('')
   }</tbody></table>`;
@@ -452,14 +482,54 @@ async function eliminarRuta(id,nombre){
   if(!confirm('¿Eliminar la ruta '+nombre+'?'))return;
   try{ await api('/rutas/'+id,{method:'DELETE'}); vRutas(); }catch(e){alert(e.message)}
 }
-async function agregarParada(id){
-  const txt=prompt('Nueva parada — formato: nombre, latitud, longitud, hora\nEj: Plaza Tupac Amaru, -13.525, -71.955, 07:30');
-  if(!txt)return;
-  const [nombre,lat,lng,hora]=txt.split(',').map(s=>s.trim());
-  if(!nombre||isNaN(parseFloat(lat))||isNaN(parseFloat(lng)))return alert('Formato inválido');
+/* ── Paradas en mapa (clic para ubicar, en vez de escribir coordenadas) ──── */
+let paradasMapaInstancia=null, paradasCapa=null, paradasTemp=[], paradasRutaId=null;
+
+function abrirParadasMapa(id){
   const r=(window._rutas||[]).find(x=>x._id===id); if(!r)return;
-  const paradas=[...(r.paradas||[]),{nombre,latitud:parseFloat(lat),longitud:parseFloat(lng),horaEstimada:hora||''}];
-  try{ await api('/rutas/'+id,{method:'PUT',body:JSON.stringify({paradas})}); vRutas(); }catch(e){alert(e.message)}
+  paradasRutaId=id;
+  paradasTemp=(r.paradas||[]).map(p=>({nombre:p.nombre||'',latitud:p.latitud,longitud:p.longitud,horaEstimada:p.horaEstimada||''}));
+  document.getElementById('paradasRutaNombre').textContent=r.nombre;
+  document.getElementById('paradasOverlay').classList.remove('hidden');
+
+  const centro = paradasTemp[0] ? [paradasTemp[0].latitud,paradasTemp[0].longitud] : [-13.5226,-71.9673];
+  if(!paradasMapaInstancia){
+    paradasMapaInstancia=L.map('paradasMapa',{zoomControl:true,attributionControl:false}).setView(centro,14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(paradasMapaInstancia);
+    paradasCapa=L.layerGroup().addTo(paradasMapaInstancia);
+    paradasMapaInstancia.on('click',(e)=>{
+      paradasTemp.push({nombre:'Parada '+(paradasTemp.length+1),latitud:e.latlng.lat,longitud:e.latlng.lng,horaEstimada:''});
+      renderParadasMapa();
+    });
+  }
+  setTimeout(()=>{ paradasMapaInstancia.invalidateSize(); paradasMapaInstancia.setView(centro,14); renderParadasMapa(); },150);
+}
+
+function renderParadasMapa(){
+  paradasCapa.clearLayers();
+  paradasTemp.forEach((p,i)=>{
+    L.marker([p.latitud,p.longitud],{icon:L.divIcon({className:'',html:'<div style="background:#a371f7;color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5)">'+(i+1)+'</div>',iconSize:[24,24],iconAnchor:[12,12]})}).addTo(paradasCapa);
+  });
+  const lista=document.getElementById('paradasLista');
+  lista.innerHTML = paradasTemp.map((p,i)=>`
+    <div class="paradaFila">
+      <span class="n">${i+1}</span>
+      <div class="campos">
+        <input class="nombre" placeholder="Nombre de la parada" value="${esc(p.nombre)}" oninput="paradasTemp[${i}].nombre=this.value">
+        <input class="hora" placeholder="07:00" value="${esc(p.horaEstimada)}" oninput="paradasTemp[${i}].horaEstimada=this.value">
+      </div>
+      <button onclick="quitarParadaTemp(${i})" title="Quitar">✕</button>
+    </div>`).join('') || '<div class="muted" style="font-size:12px;padding:8px 4px">Aún no hay paradas — toca el mapa para agregar la primera.</div>';
+}
+function quitarParadaTemp(i){ paradasTemp.splice(i,1); renderParadasMapa(); }
+function cerrarParadasMapa(){ document.getElementById('paradasOverlay').classList.add('hidden'); }
+async function guardarParadasMapa(){
+  if(paradasTemp.some(p=>!p.nombre.trim())) return alert('Ponle nombre a todas las paradas');
+  try{
+    await api('/rutas/'+paradasRutaId,{method:'PUT',body:JSON.stringify({paradas:paradasTemp})});
+    cerrarParadasMapa();
+    vRutas();
+  }catch(e){ alert(e.message) }
 }
 
 /* ── HORARIOS ───────────────────────────────────────────────────────────── */
