@@ -3,6 +3,7 @@ import Alerta from './models/Alerta.js';
 import TrazaGPS from './models/TrazaGPS.js';
 import Horario from './models/Horario.js';
 import Ruta from './models/Ruta.js';
+import { enviarPush } from './push.js';
 
 // Distancia en metros entre dos puntos (Haversine)
 export function distanciaMetros(lat1, lng1, lat2, lng2) {
@@ -84,8 +85,9 @@ export async function evaluarGeocercas(ruta) {
     zona: ruta.zona,
     latitud: { $ne: null },
     longitud: { $ne: null },
-  }).select('nombre latitud longitud');
+  }).select('nombre latitud longitud pushToken');
   if (!ciudadanos.length) return 0;
+  const pushDe = Object.fromEntries(ciudadanos.map((c) => [String(c._id), c.pushToken]));
 
   const desde = ruta.fechaInicio || new Date(Date.now() - 12 * 3600 * 1000);
   // Avisos ya emitidos en esta jornada (para no repetir)
@@ -130,7 +132,19 @@ export async function evaluarGeocercas(ruta) {
     }
   }
 
-  if (nuevas.length) await Alerta.insertMany(nuevas);
+  if (nuevas.length) {
+    await Alerta.insertMany(nuevas);
+    // Notificación push real (con sonido, aunque la app esté cerrada). No se
+    // espera la respuesta de Expo para no demorar el PUT de ubicación del camión.
+    enviarPush(
+      nuevas.map((a) => ({
+        to: pushDe[String(a.usuario)],
+        title: a.titulo,
+        body: a.mensaje,
+        data: { tipo: a.tipo, rutaId: String(a.ruta) },
+      }))
+    ).catch(() => {});
+  }
   return nuevas.length;
 }
 
@@ -173,16 +187,17 @@ export async function revisarRetrasos() {
       : false;
     if (yaLlego) continue;
 
-    const ciudadanos = await Usuario.find({ rol: 'CIUDADANO', activo: true, zona: h.zona }).select('_id');
+    const ciudadanos = await Usuario.find({ rol: 'CIUDADANO', activo: true, zona: h.zona }).select('_id pushToken');
     if (!ciudadanos.length) continue;
 
-    const nuevas = ciudadanos.map((c) => ({
-      tipo: 'RETRASO', usuario: c._id, zona: h.zona,
-      titulo: '⚠️ Retraso en tu ruta de recojo',
-      mensaje: `El camión no llegó dentro del horario previsto de ${textoVentana(h)}. Puede haber un retraso o reprogramación; te avisaremos apenas esté cerca.`,
-    }));
+    const titulo = '⚠️ Retraso en tu ruta de recojo';
+    const mensaje = `El camión no llegó dentro del horario previsto de ${textoVentana(h)}. Puede haber un retraso o reprogramación; te avisaremos apenas esté cerca.`;
+    const nuevas = ciudadanos.map((c) => ({ tipo: 'RETRASO', usuario: c._id, zona: h.zona, titulo, mensaje }));
     await Alerta.insertMany(nuevas);
     generadas += nuevas.length;
+    enviarPush(
+      ciudadanos.map((c) => ({ to: c.pushToken, title: titulo, body: mensaje, data: { tipo: 'RETRASO' } }))
+    ).catch(() => {});
   }
   return generadas;
 }

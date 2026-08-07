@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import api from './api';
+import { registrarNotificaciones } from './notificaciones';
 
 export interface Usuario {
   id: string;
@@ -40,7 +41,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const t = await SecureStore.getItemAsync('token');
         const u = await SecureStore.getItemAsync('usuario');
-        if (t && u) setUsuario(JSON.parse(u));
+        if (t && u) {
+          setUsuario(JSON.parse(u));
+          registrarNotificaciones().catch(() => {}); // re-registra el token de push al reabrir la app
+        }
       } catch {}
       finally { setCargando(false); }
     })();
@@ -50,6 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await SecureStore.setItemAsync('token', token);
     await SecureStore.setItemAsync('usuario', JSON.stringify(u));
     setUsuario(u);
+    registrarNotificaciones().catch(() => {}); // pide permiso y registra el token de push
   };
 
   const login = useCallback(async (email: string, password: string) => {

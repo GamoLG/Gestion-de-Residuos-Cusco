@@ -12,7 +12,7 @@ const ADMIN = ['ADMIN_ZONA', 'ADMIN_MUNICIPAL', 'SUPER_ADMIN'];
 
 // PUT /api/usuarios/me  — editar mis datos (cualquier usuario)
 router.put('/me', autenticar, async (req, res) => {
-  const permitido = ['nombre', 'telefono', 'direccion', 'latitud', 'longitud', 'foto', 'zona'];
+  const permitido = ['nombre', 'telefono', 'direccion', 'latitud', 'longitud', 'foto', 'zona', 'pushToken'];
   const patch = {};
   for (const k of permitido) if (req.body[k] !== undefined) patch[k] = req.body[k];
   const u = await Usuario.findByIdAndUpdate(req.usuario.id, patch, { new: true }).populate('zona', 'nombre');

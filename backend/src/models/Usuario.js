@@ -21,6 +21,7 @@ const usuarioSchema = new mongoose.Schema(
     ubicacionActualizada: Date, // última vez que reportó su posición (en vivo)
     foto: { type: String, default: null },
     ultimoAcceso: Date,
+    pushToken: { type: String, default: null }, // token de Expo para notificaciones push reales
     rol: { type: String, enum: ROLES, default: 'CIUDADANO' },
     zona: { type: mongoose.Schema.Types.ObjectId, ref: 'Zona', default: null },
     activo: { type: Boolean, default: true },

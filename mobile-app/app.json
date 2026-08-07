@@ -47,11 +47,22 @@
           "locationWhenInUsePermission": "Residuos Cusco usa tu ubicación para detectar tu zona y mostrar los camiones cercanos."
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "color": "#161b22"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": false,
       "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "REEMPLAZAR-CON-TU-PROJECT-ID"
+      }
     }
   }
 }
