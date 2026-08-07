@@ -43,8 +43,8 @@ export const rolAccent: Record<string, string> = {
 
 export const acentoDe = (rol?: string) => rolAccent[rol || ''] || colors.primary;
 
-// Número de WhatsApp de soporte de la municipalidad (demo)
-export const WHATSAPP_SOPORTE = '51984000000';
+// Número de WhatsApp de soporte de la municipalidad
+export const WHATSAPP_SOPORTE = '51940141772';
 
 export const DIAS_SEMANA = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
