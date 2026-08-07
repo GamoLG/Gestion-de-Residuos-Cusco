@@ -1,3 +1,5 @@
+<!-- Proyecto realizado por el estudiante Jhoel Alex Luicho Quispe, estudiante de la Escuela Profesional de Ingeniería Informática y de Sistemas - UNSAAC. -->
+
 # Diagramas UML y Modelo de Datos — Residuos Cusco
 
 > Diagramas en **Mermaid** y **PlantUML** (listos para insertar en el informe).

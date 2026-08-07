@@ -49,5 +49,6 @@
     "web": "expo start --web",
     "lint": "expo lint"
   },
-  "private": true
+  "private": true,
+  "author": "Jhoel Alex Luicho Quispe (UNSAAC - Ingeniería Informática y de Sistemas)"
 }

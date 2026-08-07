@@ -1,3 +1,5 @@
+<!-- Proyecto realizado por el estudiante Jhoel Alex Luicho Quispe, estudiante de la Escuela Profesional de Ingeniería Informática y de Sistemas - UNSAAC. -->
+
 # Gestión de ramas y asignación — GitHub
 
 **Repositorio:** https://github.com/GamoLG/Gestion-de-Residuos-Cusco

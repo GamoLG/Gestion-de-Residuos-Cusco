@@ -1,3 +1,4 @@
+// Proyecto realizado por el estudiante Jhoel Alex Luicho Quispe, estudiante de la Escuela Profesional de Ingeniería Informática y de Sistemas - UNSAAC.
 import mongoose from 'mongoose';
 
 // Historial de posiciones del camión (para dibujar el recorrido real)

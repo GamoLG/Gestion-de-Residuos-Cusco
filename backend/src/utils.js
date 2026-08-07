@@ -1,3 +1,4 @@
+// Proyecto realizado por el estudiante Jhoel Alex Luicho Quispe, estudiante de la Escuela Profesional de Ingeniería Informática y de Sistemas - UNSAAC.
 // Envoltura de respuesta uniforme: { success, message, data }
 export function ok(res, data, message = 'Operación exitosa', status = 200) {
   return res.status(status).json({ success: true, message, data });

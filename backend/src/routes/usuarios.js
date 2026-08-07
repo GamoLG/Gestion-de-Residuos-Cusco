@@ -1,3 +1,4 @@
+// Proyecto realizado por el estudiante Jhoel Alex Luicho Quispe, estudiante de la Escuela Profesional de Ingeniería Informática y de Sistemas - UNSAAC.
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import Usuario, { ROLES } from '../models/Usuario.js';

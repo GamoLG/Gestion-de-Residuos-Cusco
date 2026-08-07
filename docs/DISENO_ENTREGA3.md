@@ -1,3 +1,5 @@
+<!-- Proyecto realizado por el estudiante Jhoel Alex Luicho Quispe, estudiante de la Escuela Profesional de Ingeniería Informática y de Sistemas - UNSAAC. -->
+
 # Diseño técnico — Entrega 3 (Residuos Cusco)
 
 > Bosquejo para el Capítulo III: base de datos robusta, diagramas (casos de uso por rol, chatbot, avisos del camión) y flujos de Google y recuperación de contraseña con verificación de identidad.

@@ -1,3 +1,4 @@
+// Proyecto realizado por el estudiante Jhoel Alex Luicho Quispe, estudiante de la Escuela Profesional de Ingeniería Informática y de Sistemas - UNSAAC.
 // Paleta inspirada en el proyecto SistemaResiduos (oscuro estilo GitHub, acento azul)
 export const colors = {
   bg: '#0d1117',

@@ -1,3 +1,4 @@
+// Proyecto realizado por el estudiante Jhoel Alex Luicho Quispe, estudiante de la Escuela Profesional de Ingeniería Informática y de Sistemas - UNSAAC.
 // Calcula el recorrido real por las calles entre un conjunto de paradas
 // (en vez de una línea recta que puede cruzar manzanas y edificios), usando
 // el servidor público de OSRM (Open Source Routing Machine) sobre datos de

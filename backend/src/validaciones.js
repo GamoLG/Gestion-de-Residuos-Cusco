@@ -1,3 +1,4 @@
+// Proyecto realizado por el estudiante Jhoel Alex Luicho Quispe, estudiante de la Escuela Profesional de Ingeniería Informática y de Sistemas - UNSAAC.
 // Lógica pura extraída de las rutas (auth, horarios, dni) y de geocercas.js
 // para poder probarla de forma aislada con Jest, sin Express ni MongoDB.
 // Las reglas son las MISMAS que aplican los endpoints correspondientes.

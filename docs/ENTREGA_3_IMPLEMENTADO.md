@@ -1,3 +1,5 @@
+<!-- Proyecto realizado por el estudiante Jhoel Alex Luicho Quispe, estudiante de la Escuela Profesional de Ingeniería Informática y de Sistemas - UNSAAC. -->
+
 # ✅ Entrega 3 — Funcionalidades implementadas
 
 > Estado real del sistema tras implementar el alcance comprometido de la Entrega 3

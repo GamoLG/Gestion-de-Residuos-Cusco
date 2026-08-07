@@ -1,0 +1,667 @@
+% Proyecto realizado por el estudiante Jhoel Alex Luicho Quispe, estudiante de la Escuela Profesional de Ingeniería Informática y de Sistemas - UNSAAC.
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{tabularx}
+\usepackage{mdframed}
+\usepackage{float}
+
+\definecolor{azuloscuro}{RGB}{44,82,130}
+\definecolor{azulclaro}{RGB}{235,244,255}
+\definecolor{grisclaro}{RGB}{247,247,247}
+\definecolor{verdeclaro}{RGB}{240,255,244}
+\definecolor{rojoclaro}{RGB}{255,245,245}
+\definecolor{azulinfo}{RGB}{235,248,255}
+\definecolor{moradoclaro}{RGB}{243,236,253}
+
+\geometry{top=2.5cm,bottom=2.5cm,left=3cm,right=3cm}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small IF614 -- Ingeniería de Software I}
+\fancyhead[R]{\small Residuos Cusco -- Entrega 3}
+\fancyfoot[C]{\thepage}
+
+\hypersetup{colorlinks=true, linkcolor=azuloscuro, urlcolor=azuloscuro}
+
+\newcommand{\theadcell}[1]{%
+  \cellcolor{azuloscuro}\textcolor{white}{\textbf{\small #1}}}
+
+\begin{document}
+
+% =================================================================
+% CARÁTULA
+% =================================================================
+\thispagestyle{empty}
+\begin{center}
+    \Large \textbf{UNIVERSIDAD NACIONAL DE SAN ANTONIO ABAD DEL CUSCO}\\[0.5cm]
+    \large \textbf{FACULTAD DE INGENIERÍA ELÉCTRICA, ELECTRÓNICA, INFORMÁTICA Y MECÁNICA}\\[0.5cm]
+    \large \textbf{ESCUELA PROFESIONAL DE INGENIERÍA INFORMÁTICA Y DE SISTEMAS}\\[0.3cm]
+    \noindent\rule{\textwidth}{1.5pt}\\[0.5cm]
+    \begin{minipage}{0.45\textwidth}
+        \begin{center}
+            \includegraphics[width=0.7\textwidth]{LOGOUNSAAC.png}
+        \end{center}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \begin{center}
+            \includegraphics[width=0.7\textwidth]{LOGOCARRERA.png}
+        \end{center}
+    \end{minipage}\\[0.3cm]
+    \noindent\rule{\textwidth}{0.5pt}\\[0.2cm]
+    \Huge \textbf{SISTEMA INTELIGENTE DE RECOLECCIÓN}\\[0.1cm]
+    \Huge \textbf{DE RESIDUOS SÓLIDOS SEGREGADOS}\\[0.2cm]
+    \Large \textbf{Entrega N.° 3 -- Informe Técnico Completo}\\[0.2cm]
+    \large \textbf{Curso:} IF614 -- Ingeniería de Software I\\[0.3cm]
+    \large \textbf{Docente(s):} Gamarra Salas, Jisbaj; Cosio Loaiza, Stephan Jhoel; Ticona Felix, Luz Indira\\[0.2cm]
+    \large \textbf{Integrantes:}\\[0.4cm]
+    \renewcommand{\arraystretch}{1}
+    \begin{tabular}{|p{7cm}|p{2.5cm}|p{3.5cm}|}
+    \hline
+    \rowcolor{azuloscuro}
+    \textcolor{white}{\textbf{Apellidos y Nombres}} &
+    \textcolor{white}{\textbf{Código}} &
+    \textcolor{white}{\textbf{Rol}} \\
+    \hline
+    Luicho Quispe, Jhoel Alex        & 224871 & Product Owner \\[0.2cm]
+    \hline
+    Luna Ccapa, Carlos Willian       & 210178 & Developer \\[0.2cm]
+    \hline
+    Puma Condori, Richard Braulio    & 161809 & Developer \\[0.2cm]
+    \hline
+    Huaracallo Arenas, Lino Zeynt    & 204798 & Scrum Master \\[0.2cm]
+    \hline
+    \end{tabular}\\[0.5cm]
+    \large Metodología: SCRUM \quad $|$ \quad Atributo del graduado: AG-C01\\[0.3cm]
+    \large CUSCO -- PERÚ\\[0.2cm]
+    \large 2026
+\end{center}
+\newpage
+
+\tableofcontents
+\newpage
+
+% =================================================================
+% GLOSARIO
+% =================================================================
+\section{Glosario de términos y abreviaturas}
+Antes de describir el sistema, se define cada término técnico y sigla usada en este informe, para que ninguna quede sin explicar.
+
+\begin{longtable}{|p{3.2cm}|p{11cm}|}
+\hline
+\rowcolor{azuloscuro}
+\textcolor{white}{\textbf{Término}} & \textcolor{white}{\textbf{Significado}} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{azuloscuro}
+\textcolor{white}{\textbf{Término}} & \textcolor{white}{\textbf{Significado}} \\
+\hline
+\endhead
+\textbf{API} & \textit{Application Programming Interface} (interfaz de programación de aplicaciones). Es el conjunto de rutas/direcciones que expone el servidor para que la app móvil y el panel web le pidan o envíen datos. \\
+\hline
+\textbf{REST / API REST} & Estilo de diseño de API donde cada recurso (usuario, ruta, zona, etc.) se identifica con una dirección web y se opera sobre él con verbos HTTP estándar (GET, POST, PUT, DELETE). \\
+\hline
+\textbf{HTTP / HTTPS} & \textit{HyperText Transfer Protocol} (protocolo de transferencia de hipertexto): el lenguaje con el que la app y el navegador se comunican con el servidor. La ``S'' final indica que el canal va cifrado (seguro). \\
+\hline
+\textbf{JSON} & \textit{JavaScript Object Notation}: formato de texto en el que viajan los datos entre la app/web y el servidor (pares clave-valor, por ejemplo \texttt{\{"nombre":"Juan"\}}). \\
+\hline
+\textbf{JWT} & \textit{JSON Web Token}: un token (cadena de texto firmada digitalmente) que el servidor entrega al iniciar sesión y que el cliente reenvía en cada petición para demostrar quién es, sin tener que mandar la contraseña de nuevo. Válido 7 días. \\
+\hline
+\textbf{CRUD} & Acrónimo de \textit{Create, Read, Update, Delete} (crear, leer, actualizar, eliminar): las cuatro operaciones básicas de gestión de datos que el administrador puede hacer sobre usuarios, zonas, rutas, etc. \\
+\hline
+\textbf{GPS} & \textit{Global Positioning System} (sistema de posicionamiento global): la tecnología del celular que entrega la latitud y longitud (coordenadas) de un dispositivo. \\
+\hline
+\textbf{ETA} & \textit{Estimated Time of Arrival} (tiempo estimado de llegada): minutos que el sistema calcula que le faltan al camión para llegar a un punto, según su velocidad real reciente. \\
+\hline
+\textbf{IA} & Inteligencia Artificial. En este proyecto se usa el servicio Google Gemini para el chatbot de segregación y la clasificación de residuos por foto. \\
+\hline
+\textbf{Backend} & La parte del sistema que corre en el servidor (no se ve directamente): recibe peticiones, aplica las reglas de negocio y guarda/consulta la base de datos. \\
+\hline
+\textbf{Frontend} & La parte del sistema con la que el usuario interactúa directamente: la app móvil y el panel web. \\
+\hline
+\textbf{BD / MongoDB} & Base de Datos. MongoDB es el motor de base de datos usado, de tipo documental (guarda la información como documentos tipo JSON en vez de tablas rígidas). MongoDB Atlas es la versión de MongoDB alojada en la nube que usa este proyecto. \\
+\hline
+\textbf{Mongoose} & Librería de Node.js que define la forma (esquema) de cada documento de MongoDB y facilita las operaciones sobre la base de datos. \\
+\hline
+\textbf{Node.js} & Entorno de ejecución de JavaScript fuera del navegador, usado para programar el servidor (backend) de este proyecto. \\
+\hline
+\textbf{Express} & Framework (marco de trabajo) de Node.js usado para definir las rutas de la API REST. \\
+\hline
+\textbf{Expo / React Native} & Tecnologías con las que está hecha la app móvil: React Native permite escribir una sola app que corre en Android e iOS, y Expo es el conjunto de herramientas que facilita construirla, sin necesitar configurar Android Studio manualmente para cada función. \\
+\hline
+\textbf{TypeScript} & Variante de JavaScript que agrega tipado (declarar de antemano qué tipo de dato es cada variable), lo que ayuda a prevenir errores antes de ejecutar el código. \\
+\hline
+\textbf{APK} & \textit{Android Package} (paquete de Android): el archivo instalable de la app en celulares Android. \\
+\hline
+\textbf{OSRM} & \textit{Open Source Routing Machine}: motor de código abierto que calcula el camino más corto por calles reales usando los datos de OpenStreetMap. \\
+\hline
+\textbf{OpenStreetMap} & Mapa colaborativo y gratuito del mundo, mantenido por voluntarios, usado como fuente de calles y como capa visual del mapa (mediante la librería Leaflet). \\
+\hline
+\textbf{Dijkstra / Contraction Hierarchies} & Dijkstra es un algoritmo clásico para encontrar el camino más corto entre dos puntos de un grafo (red de calles). \textit{Contraction Hierarchies} es una técnica más moderna que pre-procesa el grafo para responder esas mismas consultas mucho más rápido; es la que usa OSRM internamente. \\
+\hline
+\textbf{Geocercas} & Zonas geográficas virtuales (definidas por un polígono de coordenadas) que el sistema usa para saber si un punto GPS (el camión o un ciudadano) está dentro o cerca de un área determinada. \\
+\hline
+\textbf{Fórmula de Haversine} & Fórmula matemática que calcula la distancia real en metros entre dos coordenadas GPS sobre la superficie de la Tierra (que es curva, no plana). \\
+\hline
+\textbf{Push / notificación push} & Mensaje que el sistema operativo del celular muestra al usuario (con sonido y vibración) enviado desde un servidor, incluso si la aplicación está cerrada. \\
+\hline
+\textbf{FCM} & \textit{Firebase Cloud Messaging}: el servicio de Google que efectivamente entrega las notificaciones push a los celulares Android. \\
+\hline
+\textbf{Expo Push Token} & Identificador único que cada instalación de la app genera para poder recibir notificaciones; se guarda en el servidor asociado al usuario. \\
+\hline
+\textbf{DNI} & Documento Nacional de Identidad (Perú). \\
+\hline
+\textbf{RENIEC} & Registro Nacional de Identificación y Estado Civil del Perú; su API pública se usa para autocompletar el nombre de la persona a partir de su número de DNI durante el registro. \\
+\hline
+\textbf{bcrypt} & Algoritmo de cifrado (hash) usado para guardar las contraseñas de forma irreversible: el sistema nunca guarda ni puede mostrar la contraseña original, solo compara si una nueva coincide con la cifrada. \\
+\hline
+\textbf{Rate limiting} & Límite de la cantidad de peticiones que una misma dirección IP puede hacer en un periodo de tiempo, usado aquí para frenar intentos automatizados de adivinar contraseñas. \\
+\hline
+\textbf{CSV} & \textit{Comma-Separated Values} (valores separados por comas): formato de archivo de texto plano que se abre en Excel, usado para exportar reportes. \\
+\hline
+\textbf{KPI} & \textit{Key Performance Indicator} (indicador clave de desempeño): una métrica resumida que ayuda a evaluar el estado del sistema de un vistazo (por ejemplo, camiones activos, incidencias pendientes). \\
+\hline
+\textbf{TTL} & \textit{Time To Live} (tiempo de vida): configuración de la base de datos que borra automáticamente un registro después de cierto tiempo (usado en el historial de posiciones GPS, que se conserva 60 días). \\
+\hline
+\textbf{IP} & \textit{Internet Protocol}: dirección numérica que identifica a un dispositivo conectado a internet; se usa para aplicar el límite de intentos de inicio de sesión. \\
+\hline
+\textbf{UUID} & \textit{Universally Unique Identifier}: código alfanumérico único usado, por ejemplo, para identificar el proyecto en el servicio de Expo. \\
+\hline
+\textbf{OAuth} & Protocolo estándar que permite iniciar sesión usando una cuenta externa (en este caso, Google) sin compartir la contraseña de esa cuenta con la aplicación. \\
+\hline
+\textbf{SDK} & \textit{Software Development Kit}: conjunto de herramientas para desarrollar sobre una plataforma (por ejemplo, el SDK de Expo). \\
+\hline
+\end{longtable}
+
+% =================================================================
+% CAPÍTULO I
+% =================================================================
+\section{Introducción y alcance de la Entrega 3}
+
+La Entrega 3 lleva el sistema del estado funcional básico (Entrega 2) a una plataforma completa y en producción, con tres pilares nuevos: \textbf{geolocalización en tiempo real} (el ciudadano ve al camión moverse y recibe avisos automáticos de proximidad), \textbf{inteligencia artificial aplicada} (Google Gemini para segregación de residuos) y \textbf{precisión geográfica real} (rutas calculadas sobre las calles verdaderas de Cusco, no líneas rectas).
+
+\subsection{Arquitectura general}
+El sistema se compone de tres piezas que comparten un único backend y una única base de datos:
+
+\begin{itemize}
+    \item \textbf{App móvil} (Expo / React Native / TypeScript): usada por el Ciudadano y el Operador/Conductor.
+    \item \textbf{Dashboard web} (HTML + JavaScript, sin framework, servido por el mismo backend): usado por el Administrador.
+    \item \textbf{API REST} (Node.js + Express + MongoDB Atlas): el backend que atiende a ambos clientes por HTTPS, con autenticación por JWT.
+\end{itemize}
+
+\subsection{Roles del sistema}
+Cada rol tiene su propia interfaz y color de acento, para reconocerse de un vistazo:
+
+\begin{itemize}
+    \item \textbf{Ciudadano} (acento azul, \#58a6ff) -- app móvil.
+    \item \textbf{Operador / Conductor} (acento verde, \#3fb950) -- app móvil.
+    \item \textbf{Administrador} (acento morado, \#a371f7) -- dashboard web. Incluye tres niveles: \texttt{ADMIN\_ZONA}, \texttt{ADMIN\_MUNICIPAL} y \texttt{SUPER\_ADMIN}.
+\end{itemize}
+
+% =================================================================
+% CAPÍTULO II
+% =================================================================
+\section{Funcionalidades por rol}
+
+\subsection{Ciudadano}
+
+\subsubsection{Inicio}
+Pantalla de bienvenida con la zona asignada, cantidad de camiones activos y de rutas registradas. Muestra un aviso destacado si hay una notificación sin leer (por ejemplo, que el camión está próximo), y da acceso directo al mapa y al asistente virtual.
+
+\subsubsection{Mapa}
+Muestra el o los camiones activos en un mapa (basado en OpenStreetMap/Leaflet), con las siguientes capas:
+\begin{itemize}
+    \item El camión en vivo, representado con un ícono animado (efecto de pulso).
+    \item El \textbf{recorrido real} que el camión ya hizo (traza histórica de su GPS).
+    \item La \textbf{ruta planificada}, calculada sobre las calles reales con OSRM (ver sección \ref{sec:ruteo}).
+    \item Las paradas de la ruta, en verde si ya fueron atendidas o en gris si están pendientes.
+    \item Un \textbf{mapa de calor} opcional (``Zonas críticas'') que resalta dónde se concentran más incidencias reportadas.
+    \item Un interruptor visible de ``Compartir mi ubicación en vivo'', que el propio ciudadano activa o desactiva.
+    \item El \textbf{ETA} (tiempo estimado de llegada) del camión hasta la posición del usuario.
+\end{itemize}
+
+\subsubsection{Horarios}
+Al abrir esta pantalla, la app solicita la posición GPS actual del dispositivo (con precisión alta) y consulta al backend qué zona real le corresponde a ese punto (\texttt{POST /api/zonas/detect}), en vez de usar únicamente la zona guardada en el perfil del usuario. Esto asegura que el horario mostrado sea siempre el correcto, incluso si el ciudadano se encuentra temporalmente en otra parte de la ciudad. Se muestra:
+\begin{itemize}
+    \item El horario semanal completo de la zona (día, hora, ventana horaria, sector y tipo de residuo).
+    \item La ``Próxima recolección'' destacada.
+    \item El \textbf{centro de avisos}, con cuatro tipos de notificación: \emph{próximo} (🔔), \emph{llegó} (✅), \emph{ya pasó} (⏭️) y \emph{retraso} (⚠️). Ver el detalle de cómo se generan en la sección \ref{sec:proximidad}.
+\end{itemize}
+
+\subsubsection{Incidencias}
+El ciudadano puede reportar basura acumulada, un contenedor dañado, que no pasó la recolección, un derrame, u otro problema, adjuntando una \textbf{foto} (tomada con la cámara o elegida de la galería) y su ubicación GPS (con la que se detecta automáticamente la zona). Puede ver el listado de ``Mis reportes'' con su estado (pendiente, en proceso, resuelto). Estos reportes alimentan tanto el mapa de calor de zonas críticas como el ranking de zonas más limpias que administra el municipio.
+
+\subsubsection{Segregar (con Inteligencia Artificial)}
+Presenta una guía visual del catálogo de tipos de residuo por categoría (orgánico, reciclable, no reciclable, peligroso). Incluye además un asistente con IA (ver sección \ref{sec:ia}) que responde en dos modalidades: \textbf{por texto} (el usuario escribe, por ejemplo, ``¿dónde boto las pilas?'') o \textbf{por foto} (el usuario fotografía el residuo y la IA responde su categoría y un consejo de manejo).
+
+\subsubsection{Perfil}
+Permite editar los datos personales (nombre, teléfono, dirección), cambiar la contraseña, y actualizar la ubicación por GPS (lo que reasigna automáticamente la zona). El cierre de sesión se confirma con una ventana propia de la aplicación (no el cuadro de diálogo genérico del sistema operativo), para mantener la coherencia visual. Desde aquí también se accede al chatbot navegador y al botón de soporte por WhatsApp.
+
+\subsubsection{Chatbot navegador y soporte}
+El chatbot es un asistente por botones (con comprensión de lenguaje natural mediante IA) que guía al usuario preguntándole qué necesita y lo lleva directo a la pantalla correspondiente (por ejemplo, a Horarios si pregunta cuándo pasa el camión). El botón de soporte abre directamente una conversación de WhatsApp con la municipalidad.
+
+\subsection{Operador / Conductor}
+
+\subsubsection{Jornada}
+Lista las rutas asignadas al conductor. Al presionar ``Iniciar jornada'', la ruta pasa al estado \texttt{EN\_PROGRESO}. Al terminar, ``Finalizar'' la marca como \texttt{COMPLETADA}; también puede reiniciarla para una nueva jornada al día siguiente (lo que limpia el estado de las paradas y el historial de GPS de la jornada anterior).
+
+\subsubsection{Mi Ruta}
+Pantalla central del operador: muestra el mapa con las paradas de su ruta y un botón ``Transmitir GPS''. Mientras está activo, la posición del dispositivo se envía al servidor aproximadamente cada 8 segundos. Este envío es el que:
+\begin{itemize}
+    \item Actualiza la posición del camión en el mapa de todos los ciudadanos y del administrador, en tiempo real.
+    \item Dispara el motor de avisos de proximidad (sección \ref{sec:proximidad}).
+    \item Va guardando el recorrido real (traza histórica) del camión.
+\end{itemize}
+El conductor puede marcar cada parada como atendida a medida que pasa por ella.
+
+\subsubsection{Modo prueba}
+Función adicional pensada para pruebas y demostraciones: permite a cualquier conductor operar \textbf{cualquier} ruta del sistema, no solo la que tiene asignada. Esto es posible porque, a nivel de permisos del backend, cualquier cuenta con rol de operador puede actualizar el estado y la ubicación de cualquier ruta; el modo prueba simplemente expone esa capacidad en la interfaz, para no depender de estar físicamente en la zona real asignada al hacer una demostración.
+
+\subsubsection{Horario}
+Muestra la programación semanal del conductor: qué día y a qué hora le corresponde cada una de sus rutas, junto con el detalle de las paradas de cada una.
+
+\subsection{Administrador (Dashboard web)}
+
+\subsubsection{Resumen}
+Panel principal con indicadores generales (KPI): total de usuarios, ciudadanos, operadores, zonas, rutas, camiones activos en ese momento, incidencias pendientes y kilogramos totales recolectados. Incluye un \textbf{mapa en vivo} con todos los camiones, las posiciones de los ciudadanos conectados y el mapa de calor de incidencias, que se actualiza automáticamente cada 8 segundos. El menú lateral es responsivo: en pantallas de celular se oculta y se despliega como panel deslizante.
+
+\subsubsection{Usuarios}
+CRUD completo de usuarios: crear cuentas de cualquier rol, cambiar el rol o la zona asignada, restablecer la contraseña, activar/desactivar o eliminar una cuenta. Incluye un buscador para filtrar la tabla.
+
+\subsubsection{Zonas}
+Gestión de las 9 zonas geográficas reales del sistema (los 8 distritos de la provincia del Cusco, con el distrito de Cusco dividido en Centro Histórico y San Blas): creación, edición del polígono geográfico y del color de identificación.
+
+\subsubsection{Rutas}
+Creación y edición de rutas: nombre, placa del camión, conductor asignado, zona, y lista de paradas (nombre, coordenadas y hora estimada). Al guardar las paradas, el sistema puede recalcular el trazado real por calles (ver sección \ref{sec:ruteo}).
+
+\subsubsection{Horarios}
+Programación de los horarios de recojo por zona: día de la semana, hora de inicio, ventana horaria, sector específico dentro de la zona, y tipo de residuo que corresponde ese día.
+
+\subsubsection{Incidencias}
+Listado de todas las incidencias reportadas por los ciudadanos, con su fotografía (ampliable con un clic) y posibilidad de cambiar su estado.
+
+\subsubsection{Residuos}
+Catálogo de tipos de residuo (con su categoría, descripción y ejemplos) y registro manual de kilogramos recolectados por zona y categoría, que alimenta los reportes.
+
+\subsubsection{Reportes}
+Gráficos de barras, torta y líneas: kilogramos recolectados por zona y por categoría, incidencias por zona y por estado, participación ciudadana por mes, y cumplimiento de rutas (paradas planificadas frente a paradas realmente atendidas). Todos los reportes se pueden exportar a \textbf{CSV} o imprimir/exportar a PDF desde el propio navegador.
+
+\subsubsection{Ranking}
+Tabla pública (visible sin necesidad de iniciar sesión) que puntúa de 0 a 100 qué tan ``limpia'' está cada zona, en función de sus incidencias resueltas, el cumplimiento de sus rutas y la cantidad de reportes pendientes. Busca fomentar una competencia sana entre distritos.
+
+\subsubsection{Auditoría}
+Registro cronológico de qué administrador creó, editó o eliminó qué recurso y cuándo, para trazabilidad y rendición de cuentas.
+
+% =================================================================
+% CAPÍTULO III
+% =================================================================
+\section{Motor de proximidad y avisos automáticos}
+\label{sec:proximidad}
+
+Este es el componente central que hace que el sistema se sienta ``vivo'': convierte las posiciones GPS del camión en avisos oportunos para el ciudadano, sin intervención humana. Su funcionamiento, paso a paso:
+
+\begin{enumerate}
+    \item \textbf{Transmisión.} Mientras el conductor tiene la ruta en progreso y la pantalla ``Mi Ruta'' con el GPS activado, su posición se envía al backend cada 8 segundos aproximadamente, mediante \texttt{PUT /api/rutas/:id/ubicacion}.
+    \item \textbf{Cálculo de distancia.} Por cada envío, el backend calcula la distancia real en metros entre el camión y cada ciudadano registrado en esa zona, usando la \textbf{fórmula de Haversine} (que tiene en cuenta la curvatura de la Tierra, a diferencia de una distancia euclidiana plana).
+    \item \textbf{Disparo del aviso.} Según la distancia obtenida:
+    \begin{itemize}
+        \item Menos de 800 metros y aún no se avisó: se genera el aviso \textbf{PROXIMIDAD} (``🔔 El camión está próximo''), incluyendo el ETA calculado según la velocidad real reciente del camión.
+        \item Menos de 200 metros: se genera el aviso \textbf{LLEGADA} (``✅ El camión llegó'').
+        \item Más de 600 metros después de haber estado en LLEGADA: se genera el aviso \textbf{PASO} (``⏭️ El camión ya no está'').
+    \end{itemize}
+    \item \textbf{Retrasos, independientes del GPS.} Un temporizador en el servidor revisa cada 3 minutos si el horario programado de una zona ya venció (con un margen de tolerancia) y ningún camión llegó a esa zona ese día; de ser así, genera el aviso \textbf{RETRASO} (``⚠️''). Esto funciona incluso si el conductor nunca transmitió GPS ese día.
+    \item \textbf{Entrega al usuario.} Cada aviso se guarda en la base de datos y se muestra dentro de la app (con actualización automática cada 8 segundos mientras la pantalla está abierta) y, además, se envía como \textbf{notificación push real} (sección \ref{sec:push}).
+\end{enumerate}
+
+\section{Notificaciones push reales}
+\label{sec:push}
+
+A diferencia de un simple aviso dentro de la aplicación, una notificación push llega al usuario aunque tenga la aplicación cerrada, con sonido, tal como cualquier aplicación de mensajería. El flujo es el siguiente:
+
+\begin{enumerate}
+    \item Al iniciar sesión, la app crea un canal de notificaciones en Android (con sonido e importancia máxima), solicita permiso al usuario y obtiene un \textbf{Expo Push Token} único para ese dispositivo.
+    \item Ese token se registra en el backend (\texttt{PUT /api/usuarios/me}).
+    \item Cada vez que el motor de proximidad genera un aviso, el backend además llama a la \textbf{Expo Push API}, la cual entrega el mensaje al dispositivo mediante \textbf{Firebase Cloud Messaging (FCM)}, el servicio de mensajería de Google para Android.
+    \item Para que la entrega funcione en una compilación real de la app (no solo en modo de desarrollo), fue necesario: (a) vincular el proyecto a una cuenta de Expo/EAS (lo que genera un identificador único de proyecto, UUID), y (b) crear un proyecto en Firebase y subir sus credenciales de servicio al sistema de credenciales de Expo.
+\end{enumerate}
+
+\section{Ruteo real por calles}
+\label{sec:ruteo}
+
+En versiones iniciales, la línea que representaba el recorrido planificado de una ruta se dibujaba conectando las paradas en línea recta, lo cual no corresponde a la realidad: una línea recta puede atravesar manzanas, parques o edificios. Para resolver esto se integró \textbf{OSRM} (\textit{Open Source Routing Machine}), un motor de ruteo de código abierto que trabaja sobre los datos de \textbf{OpenStreetMap}.
+
+OSRM resuelve el problema del camino más corto usando \textbf{Contraction Hierarchies}, una técnica derivada y optimizada del clásico \textbf{algoritmo de Dijkstra}: en vez de recalcular el grafo completo de calles en cada consulta (como haría Dijkstra puro), pre-procesa la red vial una sola vez para poder responder consultas de ruta en tiempos muy por debajo de un segundo.
+
+El cálculo se realiza \textbf{una sola vez}, al sembrar o actualizar los datos de cada ruta (no en cada petición del usuario), y el resultado (una secuencia de coordenadas que sigue las calles reales) se guarda en el campo \texttt{recorridoPlanificado} de la ruta. Como ejemplo real: la \emph{Ruta Av.\ de la Cultura} (que recorre Limacpampa, la Universidad Nacional de San Antonio Abad del Cusco -- UNSAAC --, Marcavalle, la urbanización Santa Úrsula y la Plaza de San Sebastián) generó 217 puntos de trazado real, con una distancia de 5.9 kilómetros y una duración estimada de aproximadamente 10 minutos.
+
+Todas las coordenadas de referencia (plazas, universidad, puntos de las rutas) se verificaron con el servicio de geocodificación de OpenStreetMap (Nominatim) para asegurar que correspondan a ubicaciones reales de Cusco.
+
+\section{Inteligencia Artificial: Google Gemini}
+\label{sec:ia}
+
+El componente de inteligencia artificial se implementa mediante la API de \textbf{Google Gemini}, un modelo de lenguaje multimodal (entiende tanto texto como imágenes) de Google. Se expone en el backend a través de un único endpoint:
+
+\begin{center}
+\texttt{POST /api/ia/segregar}
+\end{center}
+
+que recibe una pregunta en texto, una foto codificada en base64, o ambas, y responde con la categoría del residuo (orgánico, reciclable, no reciclable o peligroso) y un consejo práctico.
+
+\subsection{Modelo y estrategia de respaldo}
+El modelo principal configurado es \texttt{gemini-3.5-flash}. Si ese modelo no responde dentro de 12 segundos o devuelve un error (por ejemplo, por saturación de demanda), el sistema reintenta automáticamente con dos modelos alternativos más livianos: \texttt{gemini-3.1-flash-lite} y \texttt{gemini-flash-lite-latest}. Esta cadena de respaldo evita que una sola falla de un modelo deje a la aplicación sin respuesta.
+
+\subsection{Respaldo sin conexión a la IA}
+Si no hay una clave de API de Gemini configurada en el servidor, o si el servicio no está disponible, el backend recurre a un \textbf{motor de reglas por palabras clave} (por ejemplo: si el texto contiene ``botella'' responde ``reciclable''; si contiene ``cáscara'' responde ``orgánico''; si contiene ``pilas'' responde ``peligroso''). Esto garantiza que la funcionalidad de segregación nunca falle por completo, incluso sin conexión a los servicios de Google.
+
+\section{Seguridad}
+
+\begin{itemize}
+    \item \textbf{Cifrado de contraseñas:} se usa \texttt{bcrypt}, un algoritmo de hash de un solo sentido; el sistema nunca guarda ni puede recuperar la contraseña original.
+    \item \textbf{Sesión por token:} la autenticación se realiza mediante \texttt{JWT}, con una validez de 7 días, enviado en el encabezado \texttt{Authorization: Bearer} de cada petición.
+    \item \textbf{Control de acceso por rol:} cada endpoint del backend valida explícitamente qué roles pueden ejecutarlo antes de procesar la solicitud.
+    \item \textbf{Protección contra fuerza bruta:} los endpoints de inicio de sesión, registro y recuperación de contraseña limitan a 10 intentos cada 10 minutos por dirección IP; solo se cuentan los intentos fallidos, por lo que el uso normal del sistema nunca se ve afectado.
+    \item \textbf{Auditoría:} toda acción administrativa (creación, edición o eliminación) queda registrada con el autor, la fecha y el detalle del cambio.
+\end{itemize}
+
+% =================================================================
+% CAPÍTULO IV -- API
+% =================================================================
+\section{Referencia completa de la API}
+
+La siguiente tabla enumera todos los endpoints (rutas) que expone el backend, agrupados por módulo. La columna ``Acceso'' indica quién puede usar cada endpoint: \emph{Público} (no requiere sesión), \emph{Autenticado} (cualquier usuario con sesión iniciada) o \emph{Admin} (requiere rol de administrador).
+
+\begin{longtable}{|p{1.6cm}|p{4.6cm}|p{6cm}|p{1.8cm}|}
+\hline
+\rowcolor{azuloscuro}
+\textcolor{white}{\textbf{Método}} & \textcolor{white}{\textbf{Ruta}} & \textcolor{white}{\textbf{Descripción}} & \textcolor{white}{\textbf{Acceso}} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{azuloscuro}
+\textcolor{white}{\textbf{Método}} & \textcolor{white}{\textbf{Ruta}} & \textcolor{white}{\textbf{Descripción}} & \textcolor{white}{\textbf{Acceso}} \\
+\hline
+\endhead
+
+\multicolumn{4}{|l|}{\cellcolor{grisclaro}\textbf{Autenticación (\texttt{/api/auth})}} \\
+\hline
+GET & \texttt{/api/health} & Estado del servidor & Público \\
+\hline
+POST & \texttt{/api/auth/register} & Registro de ciudadano; detecta la zona por GPS & Público \\
+\hline
+POST & \texttt{/api/auth/login} & Inicio de sesión, entrega el token JWT & Público \\
+\hline
+POST & \texttt{/api/auth/google} & Inicio de sesión con Google (verifica el token de identidad) & Público \\
+\hline
+POST & \texttt{/api/auth/recuperar} & Recuperar contraseña con correo + DNI & Público \\
+\hline
+GET & \texttt{/api/auth/me} & Perfil del usuario autenticado & Autenticado \\
+\hline
+
+\multicolumn{4}{|l|}{\cellcolor{grisclaro}\textbf{Consulta de DNI (\texttt{/api/dni})}} \\
+\hline
+GET & \texttt{/api/dni/:dni} & Consulta a RENIEC, autocompleta el nombre en el registro & Público \\
+\hline
+
+\multicolumn{4}{|l|}{\cellcolor{grisclaro}\textbf{Zonas (\texttt{/api/zonas})}} \\
+\hline
+GET & \texttt{/api/zonas} & Listar las 9 zonas activas & Público \\
+\hline
+POST & \texttt{/api/zonas/detect} & Detectar a qué zona pertenece una coordenada & Público \\
+\hline
+POST & \texttt{/api/zonas} & Crear zona & Admin \\
+\hline
+PUT & \texttt{/api/zonas/:id} & Editar zona & Admin \\
+\hline
+DELETE & \texttt{/api/zonas/:id} & Eliminar (desactivar) zona & Admin \\
+\hline
+
+\multicolumn{4}{|l|}{\cellcolor{grisclaro}\textbf{Rutas (\texttt{/api/rutas})}} \\
+\hline
+GET & \texttt{/api/rutas} & Listar todas las rutas & Público \\
+\hline
+GET & \texttt{/api/rutas/activas} & Rutas en estado \texttt{EN\_PROGRESO} (mapa en vivo) & Público \\
+\hline
+GET & \texttt{/api/rutas/mias} & Rutas asignadas al operador autenticado & Operador \\
+\hline
+GET & \texttt{/api/rutas/:id} & Detalle de una ruta & Público \\
+\hline
+GET & \texttt{/api/rutas/:id/traza} & Historial de posiciones GPS reales del camión & Público \\
+\hline
+GET & \texttt{/api/rutas/:id/eta} & Tiempo estimado de llegada hasta un punto & Autenticado \\
+\hline
+POST & \texttt{/api/rutas} & Crear ruta (calcula el trazado real con OSRM) & Admin \\
+\hline
+PUT & \texttt{/api/rutas/:id} & Editar ruta & Admin \\
+\hline
+DELETE & \texttt{/api/rutas/:id} & Eliminar ruta & Admin \\
+\hline
+PUT & \texttt{/api/rutas/:id/estado} & Cambiar estado (iniciar/finalizar jornada) & Operador \\
+\hline
+PUT & \texttt{/api/rutas/:id/ubicacion} & Reportar GPS del camión; dispara los avisos de proximidad & Operador \\
+\hline
+PUT & \texttt{/api/rutas/:id/paradas/:idx} & Marcar una parada como atendida & Operador \\
+\hline
+
+\multicolumn{4}{|l|}{\cellcolor{grisclaro}\textbf{Incidencias (\texttt{/api/incidentes})}} \\
+\hline
+GET & \texttt{/api/incidentes} & Listar todas las incidencias & Admin \\
+\hline
+GET & \texttt{/api/incidentes/mis-reportes} & Mis incidencias reportadas & Autenticado \\
+\hline
+GET & \texttt{/api/incidentes/puntos} & Coordenadas para el mapa de calor & Autenticado \\
+\hline
+POST & \texttt{/api/incidentes} & Reportar incidencia (con foto y GPS) & Autenticado \\
+\hline
+PUT & \texttt{/api/incidentes/:id/estado} & Cambiar estado de una incidencia & Admin \\
+\hline
+DELETE & \texttt{/api/incidentes/:id} & Eliminar incidencia & Admin \\
+\hline
+
+\multicolumn{4}{|l|}{\cellcolor{grisclaro}\textbf{Residuos (\texttt{/api/residuos})}} \\
+\hline
+GET & \texttt{/api/residuos} & Catálogo de tipos de residuo & Público \\
+\hline
+POST & \texttt{/api/residuos} & Crear tipo de residuo & Admin \\
+\hline
+POST & \texttt{/api/residuos/recoleccion} & Registrar kilogramos recolectados & Operador/Admin \\
+\hline
+PUT & \texttt{/api/residuos/:id} & Editar tipo de residuo & Admin \\
+\hline
+DELETE & \texttt{/api/residuos/:id} & Eliminar tipo de residuo & Admin \\
+\hline
+
+\multicolumn{4}{|l|}{\cellcolor{grisclaro}\textbf{Horarios (\texttt{/api/horarios})}} \\
+\hline
+GET & \texttt{/api/horarios} & Horarios de recojo, filtrable por zona & Público \\
+\hline
+POST & \texttt{/api/horarios} & Crear horario & Admin \\
+\hline
+PUT & \texttt{/api/horarios/:id} & Editar horario & Admin \\
+\hline
+DELETE & \texttt{/api/horarios/:id} & Eliminar horario & Admin \\
+\hline
+
+\multicolumn{4}{|l|}{\cellcolor{grisclaro}\textbf{Alertas (\texttt{/api/alertas})}} \\
+\hline
+GET & \texttt{/api/alertas/mias} & Mis avisos (últimos 100) & Autenticado \\
+\hline
+PUT & \texttt{/api/alertas/:id/leida} & Marcar un aviso como leído & Autenticado \\
+\hline
+PUT & \texttt{/api/alertas/leer-todas} & Marcar todos los avisos como leídos & Autenticado \\
+\hline
+
+\multicolumn{4}{|l|}{\cellcolor{grisclaro}\textbf{Usuarios (\texttt{/api/usuarios})}} \\
+\hline
+PUT & \texttt{/api/usuarios/me} & Editar mi perfil & Autenticado \\
+\hline
+PUT & \texttt{/api/usuarios/me/password} & Cambiar mi contraseña & Autenticado \\
+\hline
+PUT & \texttt{/api/usuarios/me/ubicacion} & Reportar mi posición en vivo & Autenticado \\
+\hline
+GET & \texttt{/api/usuarios} & Listar todos los usuarios & Admin \\
+\hline
+GET & \texttt{/api/usuarios/operadores} & Listar operadores (para asignar a rutas) & Admin \\
+\hline
+GET & \texttt{/api/usuarios/ubicaciones} & Posiciones en vivo de todos los usuarios & Admin \\
+\hline
+POST & \texttt{/api/usuarios} & Crear usuario de cualquier rol & Admin \\
+\hline
+PUT & \texttt{/api/usuarios/:id} & Editar usuario (rol, zona, datos, contraseña) & Admin \\
+\hline
+PUT & \texttt{/api/usuarios/:id/zona/:zonaId} & Asignar zona a un usuario & Admin \\
+\hline
+DELETE & \texttt{/api/usuarios/:id} & Eliminar usuario & Admin \\
+\hline
+
+\multicolumn{4}{|l|}{\cellcolor{grisclaro}\textbf{Reportes (\texttt{/api/reportes})}} \\
+\hline
+GET & \texttt{/api/reportes/resumen} & Indicadores generales (KPI) & Admin \\
+\hline
+GET & \texttt{/api/reportes/recolectado} & Kilogramos por zona y categoría & Admin \\
+\hline
+GET & \texttt{/api/reportes/incidencias} & Incidencias por zona, tipo y estado & Admin \\
+\hline
+GET & \texttt{/api/reportes/cumplimiento} & Cumplimiento de rutas (planificado vs.\ ejecutado) & Admin \\
+\hline
+GET & \texttt{/api/reportes/participacion} & Participación ciudadana por mes & Admin \\
+\hline
+GET & \texttt{/api/reportes/ranking} & Ranking de zonas más limpias & Público \\
+\hline
+
+\multicolumn{4}{|l|}{\cellcolor{grisclaro}\textbf{Inteligencia Artificial (\texttt{/api/ia})}} \\
+\hline
+POST & \texttt{/api/ia/segregar} & Chatbot de segregación y clasificación de residuo por foto (Google Gemini) & Autenticado \\
+\hline
+
+\multicolumn{4}{|l|}{\cellcolor{grisclaro}\textbf{Auditoría (\texttt{/api/auditoria})}} \\
+\hline
+GET & \texttt{/api/auditoria} & Registro de las últimas 200 acciones administrativas & Admin \\
+\hline
+\end{longtable}
+
+% =================================================================
+% CAPÍTULO V
+% =================================================================
+\section{Modelo de datos (colecciones principales)}
+
+\begin{longtable}{|p{3cm}|p{11.5cm}|}
+\hline
+\rowcolor{azuloscuro}
+\textcolor{white}{\textbf{Colección}} & \textcolor{white}{\textbf{Contenido y propósito}} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{azuloscuro}
+\textcolor{white}{\textbf{Colección}} & \textcolor{white}{\textbf{Contenido y propósito}} \\
+\hline
+\endhead
+\textbf{Usuario} & Nombre, correo, contraseña cifrada, DNI, teléfono, dirección, rol, zona, ubicación GPS actual, token de notificaciones push. \\
+\hline
+\textbf{Zona} & Nombre, distrito, color de identificación y polígono geográfico (formato GeoJSON) usado para la detección punto-en-zona. \\
+\hline
+\textbf{Ruta} & Nombre, placa del camión, operador asignado, zona, estado, ubicación actual del camión, lista de paradas, y el recorrido planificado real calculado con OSRM. \\
+\hline
+\textbf{Horario} & Zona, día de la semana, hora, ventana horaria, sector y tipo de residuo. \\
+\hline
+\textbf{Incidente} & Tipo, descripción, foto, ubicación, usuario que reportó, zona y estado. \\
+\hline
+\textbf{Residuo} & Catálogo de tipos de residuo (nombre, categoría, ejemplos) y también, reutilizando la misma colección, los registros de kilogramos recolectados por zona/mes para los reportes. \\
+\hline
+\textbf{Alerta} & Los avisos generados por el motor de proximidad (tipo, título, mensaje, usuario destinatario, si fue leída). \\
+\hline
+\textbf{TrazaGPS} & Historial de posiciones GPS de cada camión, con un índice de expiración automática (TTL) de 60 días. \\
+\hline
+\textbf{Auditoria} & Registro de acciones administrativas: actor, acción, entidad afectada y detalle. \\
+\hline
+\end{longtable}
+
+% =================================================================
+% CAPÍTULO VI
+% =================================================================
+\section{Tecnologías utilizadas}
+
+\begin{longtable}{|p{4cm}|p{10.5cm}|}
+\hline
+\rowcolor{azuloscuro}
+\textcolor{white}{\textbf{Capa}} & \textcolor{white}{\textbf{Tecnología}} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{azuloscuro}
+\textcolor{white}{\textbf{Capa}} & \textcolor{white}{\textbf{Tecnología}} \\
+\hline
+\endhead
+Backend / API & Node.js 20 + Express \\
+\hline
+Base de datos & MongoDB (MongoDB Atlas, en la nube) + Mongoose \\
+\hline
+Autenticación & JWT (\texttt{jsonwebtoken}) + \texttt{bcryptjs} \\
+\hline
+App móvil & Expo SDK 56 + React Native + \texttt{expo-router} (TypeScript) \\
+\hline
+Dashboard web & HTML + JavaScript, servido por el propio backend \\
+\hline
+Mapas / GPS & OpenStreetMap (Leaflet) + \texttt{expo-location} \\
+\hline
+Ruteo real & OSRM (\textit{Open Source Routing Machine}) \\
+\hline
+Notificaciones push & \texttt{expo-notifications} + Firebase Cloud Messaging (FCM) \\
+\hline
+Inteligencia Artificial & Google Gemini API (\texttt{gemini-3.5-flash} con modelos de respaldo) \\
+\hline
+Integraciones externas & API RENIEC (\texttt{apisperu}) para autocompletar por DNI \\
+\hline
+Despliegue & Render (backend + dashboard web) · APK generado con Gradle (Android) \\
+\hline
+Gestión / colaboración & GitHub (control de versiones) \\
+\hline
+\end{longtable}
+
+% =================================================================
+% CAPÍTULO VII
+% =================================================================
+\section{Credenciales de prueba}
+
+\begin{center}
+\begin{tabular}{|l|l|l|}
+\hline
+\rowcolor{azuloscuro}
+\textcolor{white}{\textbf{Rol}} & \textcolor{white}{\textbf{Correo}} & \textcolor{white}{\textbf{Contraseña}} \\
+\hline
+Administrador (\texttt{SUPER\_ADMIN}) & admin@residuos.cusco.gob.pe & admin123 \\
+\hline
+Admin municipal & municipal@residuos.cusco.gob.pe & admin123 \\
+\hline
+Operador (ejemplo) & operador1@residuos.cusco.gob.pe & operador123 \\
+\hline
+Ciudadano (ejemplo) & ciudadano1@gmail.com & ciudadano123 \\
+\hline
+\end{tabular}
+\end{center}
+
+El sistema tiene sembradas 9 zonas (correspondientes a los 8 distritos reales de la provincia del Cusco), cada una con al menos un operador y un ciudadano de prueba asociados, para poder demostrar el funcionamiento completo en cualquiera de ellas.
+
+\begin{mdframed}[backgroundcolor=azulinfo,linecolor=azuloscuro,linewidth=1pt]
+\textbf{Panel web:} \url{https://gestion-de-residuos-cusco.onrender.com} \\
+\textbf{Repositorio:} \url{https://github.com/GamoLG/Gestion-de-Residuos-Cusco}
+\end{mdframed}
+
+% =================================================================
+% CIERRE
+% =================================================================
+\section{Conclusiones}
+
+La Entrega 3 transforma el sistema en una plataforma funcional de punta a punta: el ciudadano recibe información real y oportuna sobre la recolección de residuos en su zona, el operador cuenta con las herramientas necesarias para transmitir su recorrido, y el administrador municipal dispone de control total y datos para la toma de decisiones. La incorporación de inteligencia artificial (Google Gemini), geolocalización con avisos automáticos, notificaciones push reales y ruteo por calles verdaderas (OSRM) demuestra la aplicación práctica de tecnologías modernas de desarrollo de software a un problema real de gestión ambiental urbana en la ciudad del Cusco.
+
+\end{document}

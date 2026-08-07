@@ -1,3 +1,4 @@
+// Proyecto realizado por el estudiante Jhoel Alex Luicho Quispe, estudiante de la Escuela Profesional de Ingeniería Informática y de Sistemas - UNSAAC.
 import { Router } from 'express';
 import Incidente from '../models/Incidente.js';
 import { auditar } from '../models/Auditoria.js';

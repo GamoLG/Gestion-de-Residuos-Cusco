@@ -1,3 +1,5 @@
+<!-- Proyecto realizado por el estudiante Jhoel Alex Luicho Quispe, estudiante de la Escuela Profesional de Ingeniería Informática y de Sistemas - UNSAAC. -->
+
 # Visión y Mejoras — Entrega 3 (Residuos Cusco)
 
 > Documento de ideas (no implementado aún). Integra las propuestas del equipo + mejoras sugeridas.
@@ -9,15 +11,16 @@
 
 Cada rol tendría su **color de acento** para reconocerlo de un vistazo:
 
-| Rol | Color de acento | Idea visual |
-|-----|-----------------|-------------|
-| Ciudadano | Azul `#58a6ff` | Limpio, informativo |
-| Operador / Conductor | Verde `#3fb950` | "En ruta", operativo |
-| Administrador | Morado `#a371f7` | Gestión / control |
+| Rol                  | Color de acento   | Idea visual          |
+| -------------------- | ----------------- | -------------------- |
+| Ciudadano            | Azul`#58a6ff`   | Limpio, informativo  |
+| Operador / Conductor | Verde`#3fb950`  | "En ruta", operativo |
+| Administrador        | Morado`#a371f7` | Gestión / control   |
 
 Al iniciar sesión, la app enruta automáticamente a la interfaz del rol.
 
 ### 👤 Ciudadano — pestañas: Inicio · Mapa · Horarios · Incidencias · Segregar · Perfil
+
 - **Inicio:** saludo, su zona, próxima recolección, estado del camión.
 - **Mapa:** camión en vivo con **línea de su ruta** y paradas; "mapa de calor" de basura/incidencias.
 - **Horarios:** calendario por día y tipo de residuo de SU zona; recordatorios.
@@ -26,12 +29,14 @@ Al iniciar sesión, la app enruta automáticamente a la interfaz del rol.
 - **Perfil:** **editar datos**, cambiar contraseña, foto.
 
 ### 🚛 Operador / Conductor — pestañas: Jornada · Mi Ruta · Horario · Perfil
+
 - **Jornada:** rutas asignadas; "Iniciar jornada" → ruta EN_PROGRESO.
 - **Mi Ruta:** mapa con paradas + **transmitir ubicación GPS** (el ciudadano lo ve moverse); marcar paradas atendidas; "Finalizar ruta".
 - **Horario:** **qué días y a qué hora** le toca cada ruta/lugar (programación semanal).
 - **Perfil:** editar datos, cerrar sesión.
 
 ### 🛠️ Administrador — pestañas: Resumen · Rutas · Incidencias · Usuarios · Reportes
+
 - **Poder total (CRUD):** crear/editar/**eliminar** usuarios, zonas, rutas, residuos, incidencias.
 - **Reportes y estadísticas** (ver sección 4).
 - También disponible en el **dashboard web** (ya existe).
@@ -62,6 +67,7 @@ Al iniciar sesión, la app enruta automáticamente a la interfaz del rol.
 ## 4. Reportes y estadísticas (Administrador)
 
 Generar y **exportar (PDF/Excel)**:
+
 - Residuos recolectados **por zona** y **por tipo de contaminante** (orgánico, reciclable, etc.).
 - **Incidencias** por zona, por tipo y por estado (pendiente/resuelto).
 - **Cumplimiento de rutas** (planificadas vs ejecutadas, paradas omitidas).
@@ -69,11 +75,13 @@ Generar y **exportar (PDF/Excel)**:
 - Gráficos: barras, líneas, torta.
 
 ### Ranking de distritos más limpios (visible a TODOS)
+
 - Tabla/ranking público de **qué distritos están más limpios** (según incidencias, cumplimiento de rutas y participación). Fomenta la competencia sana entre zonas.
 
 ---
 
 ## 5. Edición de perfil (todos los usuarios)
+
 - Cada usuario puede **editar sus datos** (nombre, teléfono, dirección, foto) y **cambiar contraseña**.
 - El ciudadano puede actualizar su **ubicación/zona**.
 
@@ -94,6 +102,7 @@ Ideas de IA aplicables (de menor a mayor dificultad):
 ---
 
 ## 7. Notificaciones push (automáticas)
+
 - Avisos reales aunque la app esté cerrada (camión próximo, llegó, pasó, retraso).
 - Requiere notificaciones push (Expo Notifications) + un disparador en el backend cuando el camión entra en la geocerca del ciudadano.
 
@@ -120,6 +129,7 @@ Ideas de IA aplicables (de menor a mayor dificultad):
 ## 9. Priorización sugerida para la Entrega 3
 
 **Alta (impacto + vistoso):**
+
 1. Interfaz de **operador** (jornada + transmitir GPS) y colores por rol.
 2. **Horarios** por zona + **avisos** del camión (próximo/llegó/pasó).
 3. **Camión en vivo con línea de ruta** en el mapa.
@@ -137,12 +147,15 @@ Ideas de IA aplicables (de menor a mayor dificultad):
 ---
 
 ## 10. Resumen de una frase
+
 Pasar de "ver rutas y reportar" a una **plataforma viva**: el ciudadano sabe **cuándo llega su camión**, el conductor **transmite su recorrido**, y la municipalidad **decide con datos** (estadísticas, rankings y zonas críticas) — todo diferenciado por rol y con avisos automáticos.
 
 ---
 
 ## 11. Asistente / Chatbot navegador (con IA)
+
 Un **chatbot** dentro de la app que, mediante preguntas, **lleva al usuario directo a la pantalla** que necesita.
+
 - Hace preguntas simples y, según la respuesta, **abre la interfaz correspondiente**.
 - Ejemplos:
   - "¿Quieres saber cuándo pasa el camión?" → abre **Horarios / Mapa**.
@@ -155,7 +168,9 @@ Un **chatbot** dentro de la app que, mediante preguntas, **lleva al usuario dire
 ---
 
 ## 12. Dashboard web del Administrador — control total
+
 El admin **controla todo** desde la web (centralizado y completo):
+
 - **CRUD total:** usuarios, zonas, rutas, vehículos, residuos, incidencias (crear/editar/**eliminar**).
 - **Reportes de TODO** lo conveniente: por zona, por contaminante, por incidencia, por conductor/vehículo, cumplimiento de rutas, participación ciudadana, impacto ambiental.
 - **Exportación** PDF/Excel/CSV e **impresión** para la municipalidad.
@@ -166,6 +181,7 @@ El admin **controla todo** desde la web (centralizado y completo):
 ---
 
 ## 13. Ayuda y Soporte (WhatsApp)
+
 - Sección **"Ayuda / Soporte"** en la app y en la web.
 - **Número de WhatsApp** de la municipalidad para **quejas, soporte y consultas**, con botón directo (abre el chat de WhatsApp).
 - Complementos: **FAQ** (preguntas frecuentes) y **correo/teléfono** de contacto.
@@ -176,6 +192,7 @@ El admin **controla todo** desde la web (centralizado y completo):
 ## 14. Ideas adicionales (recopilación)
 
 ### Reportes (ampliados)
+
 - **Reportes programados** (semanal/mensual) enviados por correo al admin.
 - **Comparativos** entre periodos y entre zonas.
 - **Impacto ambiental:** kg reciclados, CO₂ evitado, % de segregación correcta.
@@ -183,26 +200,31 @@ El admin **controla todo** desde la web (centralizado y completo):
 - **Datos abiertos (Open Data)** para transparencia.
 
 ### Mapa y operación
+
 - **Puntos de acopio / contenedores** en el mapa.
 - **Optimización de rutas** (recorrido más eficiente).
 - **Nivel de llenado de contenedores** (sensores IoT — a futuro).
 - **Foto de evidencia** del conductor al completar una parada.
 
 ### Ciudadano
+
 - **Solicitar recojo especial** (voluminosos, escombros) — agendar.
 - **QR en contenedores** para reportar al instante.
 - **Encuestas de satisfacción** del servicio.
 - **Novedades/campañas** municipales (jornadas de limpieza).
 
 ### Educación / participación
+
 - **Quizzes y videos** de reciclaje; buscador "¿dónde va este residuo?".
 - **Gamificación con recompensas** (puntos, insignias, posibles beneficios).
 
 ### Seguridad y gestión
+
 - **Verificación en 2 pasos (2FA)** y verificación de correo real.
 - **Multi-municipalidad:** escalar a otros distritos.
 
 ### IA (más opciones)
+
 - **Predicción de generación de residuos** por zona (planificación).
 - **Detección de puntos críticos** (basurales recurrentes) con alerta al admin.
 - **Asistente por voz** para accesibilidad.
@@ -214,23 +236,26 @@ El admin **controla todo** desde la web (centralizado y completo):
 Para una entrega **sólida y defendible**, nos enfocamos en lo viable y vistoso. Mejor pocas cosas bien hechas.
 
 ### ✅ SÍ se hace (alcance comprometido)
-| Función | Dificultad |
-|---|---|
-| Interfaz de **Operador** + **colores por rol** | 🟢 Fácil |
-| **Horarios** por zona + **línea de ruta** en el mapa | 🟢 Fácil |
-| **Editar perfil** (todos los usuarios) | 🟢 Fácil |
-| **Reportes + estadísticas + ranking** de distritos | 🟡 Medio |
-| **WhatsApp soporte** + **chatbot por botones** | 🟢 Fácil |
-| **Notificaciones push** del camión (próximo/llegó/pasó) | 🟡 Medio (requiere celular real) |
-| **IA con Gemini:** chatbot de segregación + **clasificar residuo por foto** | 🟡 Medio (API gratuita) |
+
+| Función                                                                                 | Dificultad                       |
+| ---------------------------------------------------------------------------------------- | -------------------------------- |
+| Interfaz de**Operador** + **colores por rol**                                | 🟢 Fácil                        |
+| **Horarios** por zona + **línea de ruta** en el mapa                        | 🟢 Fácil                        |
+| **Editar perfil** (todos los usuarios)                                             | 🟢 Fácil                        |
+| **Reportes + estadísticas + ranking** de distritos                                | 🟡 Medio                         |
+| **WhatsApp soporte** + **chatbot por botones**                               | 🟢 Fácil                        |
+| **Notificaciones push** del camión (próximo/llegó/pasó)                        | 🟡 Medio (requiere celular real) |
+| **IA con Gemini:** chatbot de segregación + **clasificar residuo por foto** | 🟡 Medio (API gratuita)          |
 
 ### 🤖 IA elegida: **Google Gemini API** (gratis, multimodal)
+
 - Una sola clave cubre **chatbot** (texto) y **clasificación por foto** (imagen).
 - La clave va en el **backend** (`GEMINI_API_KEY`), nunca en la app.
 - Endpoint: `POST /api/ia/segregar` (recibe pregunta o foto → responde categoría/consejo).
 - Obtener clave gratis: https://aistudio.google.com
 
 ### ⏭️ Trabajo futuro (NO en esta entrega — muy complejo)
+
 - Modelo de **visión entrenado** propio (usamos Gemini en su lugar).
 - **Predicción ML** de generación de residuos (faltan datos históricos).
 - **Optimización de rutas** (algoritmo).

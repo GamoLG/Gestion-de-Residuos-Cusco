@@ -1,3 +1,4 @@
+// Proyecto realizado por el estudiante Jhoel Alex Luicho Quispe, estudiante de la Escuela Profesional de Ingeniería Informática y de Sistemas - UNSAAC.
 import { Router } from 'express';
 import Ruta from '../models/Ruta.js';
 import TrazaGPS from '../models/TrazaGPS.js';

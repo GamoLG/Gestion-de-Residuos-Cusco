@@ -1,3 +1,5 @@
+<!-- Proyecto realizado por el estudiante Jhoel Alex Luicho Quispe, estudiante de la Escuela Profesional de Ingeniería Informática y de Sistemas - UNSAAC. -->
+
 # Sistema Inteligente de Recolección de Residuos Sólidos Segregados — Cusco
 ## Documentación — Entrega N.° 2 (Capítulo I mejorado, Capítulo II y bosquejo del Capítulo III)
 

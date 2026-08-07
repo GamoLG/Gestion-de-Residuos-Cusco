@@ -25,5 +25,6 @@
   },
   "devDependencies": {
     "jest": "^30.4.2"
-  }
+  },
+  "author": "Jhoel Alex Luicho Quispe (UNSAAC - Ingeniería Informática y de Sistemas)"
 }

@@ -1,3 +1,4 @@
+// Proyecto realizado por el estudiante Jhoel Alex Luicho Quispe, estudiante de la Escuela Profesional de Ingeniería Informática y de Sistemas - UNSAAC.
 // Envío de notificaciones push REALES (con sonido, llegan aunque la app esté
 // cerrada) vía el servicio gratuito de Expo. El cliente registra su token con
 // PUT /api/usuarios/me { pushToken }. Requiere que el proyecto de Expo tenga

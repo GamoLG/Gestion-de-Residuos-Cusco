@@ -1,3 +1,4 @@
+// Proyecto realizado por el estudiante Jhoel Alex Luicho Quispe, estudiante de la Escuela Profesional de Ingeniería Informática y de Sistemas - UNSAAC.
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { mostrarToast } from '../components/Toast';
