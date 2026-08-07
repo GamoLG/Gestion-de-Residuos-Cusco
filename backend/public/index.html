@@ -452,7 +452,7 @@ async function vRutas(){
     <div class="f"><label>Zona</label><select id="rz"></select></div>
     <div class="f"><label>Operador</label><select id="ro"><option value="">—</option></select></div>
     <button class="btn sm" onclick="crearRuta()">Crear ruta</button></div>
-    <div class="muted" style="font-size:12px">Las paradas se agregan con el botón 📍 de cada ruta (formato: nombre, lat, lng, hora).</div></div>
+    <div class="muted" style="font-size:12px">Las paradas se agregan tocando el botón 📍 de cada ruta: se abre un mapa donde tocas el punto exacto para ubicar cada una.</div></div>
   <div class="tablaWrap" id="c">Cargando…</div>`;
   const [ru,zo,ops]=await Promise.all([api('/rutas'),api('/zonas'),api('/usuarios/operadores')]);
   document.getElementById('rz').innerHTML=zo.map(z=>`<option value="${z._id}">${esc(z.nombre)}</option>`).join('');
