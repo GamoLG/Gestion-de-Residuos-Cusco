@@ -22,6 +22,7 @@ import iaRoutes from './routes/ia.js';
 import auditoriaRoutes from './routes/auditoria.js';
 
 const app = express();
+app.set('trust proxy', 1); // Render corre detrás de un proxy; necesario para que express-rate-limit vea la IP real
 app.use(cors());
 app.use(express.json({ limit: '15mb' })); // fotos en base64 (incidencias / clasificación IA)
 

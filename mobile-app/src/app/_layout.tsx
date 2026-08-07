@@ -5,6 +5,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
 import { AuthProvider } from '../lib/auth';
+import { ToastHost } from '../components/Toast';
 import { colors } from '../lib/theme';
 
 export default function RootLayout() {
@@ -31,6 +32,7 @@ export default function RootLayout() {
               animation: 'fade',
             }}
           />
+          <ToastHost />
         </AuthProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

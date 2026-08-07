@@ -32,6 +32,19 @@
   .btn.peligro{background:transparent;border:1px solid var(--dang);color:var(--dang)}
   .btn.okb{background:var(--ok)}
   .err{color:var(--dang);font-size:13px;margin-top:10px;text-align:center}
+  .passWrap{position:relative}
+  .passWrap input{padding-right:42px}
+  .eyeBtn{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:transparent;border:none;font-size:17px;padding:6px;opacity:.7;line-height:1}
+  .eyeBtn:hover{opacity:1}
+
+  /* Confirmación personalizada (reemplaza al confirm() del navegador) */
+  .confirmOverlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+  .confirmCard{background:var(--elev);border:1px solid var(--bd);border-radius:16px;padding:28px;width:100%;max-width:340px;text-align:center}
+  .confirmIcono{font-size:32px;margin-bottom:10px}
+  .confirmTitulo{font-size:17px;font-weight:700;margin-bottom:6px}
+  .confirmMsg{color:var(--tx2);font-size:13px;line-height:1.5}
+  .confirmBotones{display:flex;gap:10px;margin-top:20px}
+  .confirmBotones button{flex:1}
 
   /* App */
   #app{display:flex;min-height:100vh}
@@ -98,9 +111,25 @@
     <label>CORREO</label>
     <input id="email" type="email" placeholder="admin@residuos.cusco.gob.pe" />
     <label>CONTRASEÑA</label>
-    <input id="password" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()" />
+    <div class="passWrap">
+      <input id="password" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()" />
+      <button type="button" class="eyeBtn" id="eyeBtn" onclick="alternarPass()" aria-label="Mostrar contraseña">👁</button>
+    </div>
     <button class="btn" onclick="login()">Iniciar sesión</button>
     <div id="loginErr" class="err"></div>
+  </div>
+</div>
+
+<!-- Confirmación personalizada (cerrar sesión, eliminar, etc.) -->
+<div id="confirmOverlay" class="confirmOverlay hidden">
+  <div class="confirmCard">
+    <div class="confirmIcono" id="confirmIcono">🚪</div>
+    <div class="confirmTitulo" id="confirmTitulo">Cerrar sesión</div>
+    <div class="confirmMsg" id="confirmMsg">¿Seguro que quieres salir?</div>
+    <div class="confirmBotones">
+      <button class="btn ghost" style="margin:0" onclick="cerrarConfirm()">Cancelar</button>
+      <button class="btn" id="confirmBtn" style="margin:0;background:var(--dang)">Salir</button>
+    </div>
   </div>
 </div>
 
@@ -124,7 +153,7 @@
     </nav>
     <div style="flex:1"></div>
     <div class="muted" style="font-size:12px;padding:0 10px" id="quien"></div>
-    <button class="btn ghost" onclick="logout()" style="margin-top:8px">Cerrar sesión</button>
+    <button class="btn ghost" onclick="confirmarLogout()" style="margin-top:8px">Cerrar sesión</button>
   </aside>
   <main id="main"></main>
 </div>
@@ -162,6 +191,34 @@ async function login(){
   }catch(e){ err.textContent=e.message; }
 }
 function logout(){ token=null;yo=null;localStorage.clear();location.reload(); }
+
+function alternarPass(){
+  const inp=document.getElementById('password');
+  const btn=document.getElementById('eyeBtn');
+  const mostrar = inp.type==='password';
+  inp.type = mostrar ? 'text' : 'password';
+  btn.textContent = mostrar ? '🙈' : '👁';
+  btn.setAttribute('aria-label', mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña');
+}
+
+// Confirmación personalizada (con el estilo del panel) en vez del confirm() del navegador
+function cerrarConfirm(){ document.getElementById('confirmOverlay').classList.add('hidden'); }
+function abrirConfirm({ icono='⚠️', titulo='Confirmar', mensaje, textoBoton='Confirmar', onConfirmar }){
+  document.getElementById('confirmIcono').textContent=icono;
+  document.getElementById('confirmTitulo').textContent=titulo;
+  document.getElementById('confirmMsg').textContent=mensaje;
+  const btn=document.getElementById('confirmBtn');
+  btn.textContent=textoBoton;
+  btn.onclick=function(){ cerrarConfirm(); onConfirmar(); };
+  document.getElementById('confirmOverlay').classList.remove('hidden');
+}
+function confirmarLogout(){
+  abrirConfirm({
+    icono:'🚪', titulo:'Cerrar sesión',
+    mensaje:'¿Seguro que quieres salir del panel de administración?',
+    textoBoton:'Salir', onConfirmar: logout,
+  });
+}
 
 function mostrarApp(){
   document.getElementById('login').classList.add('hidden');

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
+import rateLimit from 'express-rate-limit';
 import { OAuth2Client } from 'google-auth-library';
 import Usuario from '../models/Usuario.js';
 import Zona from '../models/Zona.js';
@@ -10,6 +11,17 @@ import { ok, fail } from '../utils.js';
 
 const router = Router();
 const googleClient = new OAuth2Client();
+
+// Protección contra fuerza bruta: máximo 10 intentos cada 10 min por IP,
+// solo cuenta los intentos fallidos (los exitosos no consumen el límite).
+const limitarIntentos = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
+  message: { success: false, message: 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.', data: null },
+});
 
 function zonaDesdePunto(lat, lng) {
   if (typeof lat !== 'number' || typeof lng !== 'number') return Promise.resolve(null);
@@ -36,7 +48,7 @@ function perfil(u) {
 }
 
 // POST /api/auth/register
-router.post('/register', async (req, res) => {
+router.post('/register', limitarIntentos, async (req, res) => {
   try {
     const { nombre, email, password, dni, telefono, direccion, latitud, longitud, zonaId } = req.body;
     if (!nombre || !email || !password) return fail(res, 'Nombre, email y contraseña son obligatorios');
@@ -78,7 +90,7 @@ router.post('/register', async (req, res) => {
 });
 
 // POST /api/auth/login
-router.post('/login', async (req, res) => {
+router.post('/login', limitarIntentos, async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) return fail(res, 'Email y contraseña requeridos');
@@ -104,7 +116,7 @@ router.get('/me', autenticar, async (req, res) => {
 });
 
 // POST /api/auth/recuperar  — recuperación simple por correo + DNI
-router.post('/recuperar', async (req, res) => {
+router.post('/recuperar', limitarIntentos, async (req, res) => {
   try {
     const { email, dni, password } = req.body;
     if (!email || !dni || !password) return fail(res, 'Completa correo, DNI y nueva contraseña');

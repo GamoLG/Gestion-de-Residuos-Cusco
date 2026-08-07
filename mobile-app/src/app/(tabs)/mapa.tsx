@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import * as Location from 'expo-location';
@@ -18,9 +18,11 @@ export default function Mapa() {
   const [eta, setEta] = useState<string | null>(null);
   const [verCalor, setVerCalor] = useState(false);
   const [calor, setCalor] = useState<PuntoCalor[]>([]);
+  const [compartirUbicacion, setCompartirUbicacion] = useState(true); // el ciudadano controla si transmite su posición
   const timer = useRef<any>(null);
   const gpsWatch = useRef<Location.LocationSubscription | null>(null);
   const miPos = useRef<{ lat: number; lng: number } | null>(null);
+  const enFoco = useRef(false);
 
   const cargar = useCallback(async () => {
     try {
@@ -93,8 +95,10 @@ export default function Mapa() {
     if (nuevo && calor.length === 0) cargarCalor();
   };
 
-  // Transmitir MI ubicación en vivo mientras veo el mapa (el admin la ve en su panel)
+  // Transmitir MI ubicación en vivo mientras veo el mapa (el admin la ve en su panel).
+  // El ciudadano puede apagarlo con el interruptor "Compartiendo ubicación".
   const iniciarGPS = useCallback(async () => {
+    if (gpsWatch.current) return; // ya está transmitiendo
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') return;
@@ -108,17 +112,32 @@ export default function Mapa() {
     } catch {}
   }, []);
 
+  const detenerGPS = useCallback(() => {
+    gpsWatch.current?.remove();
+    gpsWatch.current = null;
+    miPos.current = null;
+  }, []);
+
+  // Reacciona al interruptor mientras la pantalla está abierta
+  useEffect(() => {
+    if (!enFoco.current) return;
+    if (compartirUbicacion) iniciarGPS();
+    else detenerGPS();
+  }, [compartirUbicacion, iniciarGPS, detenerGPS]);
+
   useFocusEffect(
     useCallback(() => {
+      enFoco.current = true;
       cargar();
-      iniciarGPS();
+      if (compartirUbicacion) iniciarGPS();
       timer.current = setInterval(cargar, 8000); // refresco cada 8s
       return () => {
+        enFoco.current = false;
         clearInterval(timer.current);
-        gpsWatch.current?.remove();
-        gpsWatch.current = null;
+        detenerGPS();
       };
-    }, [cargar, iniciarGPS])
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [cargar, iniciarGPS, detenerGPS])
   );
 
   return (
@@ -135,6 +154,18 @@ export default function Mapa() {
           </View>
         </View>
       </View>
+      <TouchableOpacity
+        style={[s.compartir, compartirUbicacion ? { borderColor: colors.success } : { borderColor: colors.textMuted }]}
+        onPress={() => setCompartirUbicacion((v) => !v)}
+      >
+        <View style={[s.dot, { backgroundColor: compartirUbicacion ? colors.success : colors.textMuted }]} />
+        <Text style={s.compartirTxt}>
+          {compartirUbicacion ? 'Compartiendo tu ubicación en vivo' : 'Ubicación oculta (no se comparte)'}
+        </Text>
+        <Text style={[s.compartirAccion, { color: compartirUbicacion ? colors.danger : colors.success }]}>
+          {compartirUbicacion ? 'Apagar' : 'Activar'}
+        </Text>
+      </TouchableOpacity>
       <MapaOSM centro={CUSCO} zoom={13} marcadores={marcadores} polilineas={lineas} calor={verCalor ? calor : []} style={{ flex: 1 }} />
       {eta && (
         <View style={[s.eta, { borderColor: acento }]}>
@@ -157,7 +188,10 @@ const s = StyleSheet.create({
   pill: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.bgElevated, borderWidth: 1, borderColor: colors.border, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
   dot: { width: 8, height: 8, borderRadius: 4 },
   pillTxt: { color: colors.textSecondary, fontSize: 12, fontWeight: '600' },
-  eta: { position: 'absolute', top: 100, left: spacing.lg, right: spacing.lg, backgroundColor: colors.bgElevated, borderWidth: 1.5, borderRadius: 10, padding: spacing.md },
+  compartir: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginHorizontal: spacing.lg, marginBottom: spacing.sm, backgroundColor: colors.bgElevated, borderWidth: 1, borderRadius: 10, paddingHorizontal: spacing.md, paddingVertical: 8 },
+  compartirTxt: { flex: 1, color: colors.textSecondary, fontSize: 12, fontWeight: '600' },
+  compartirAccion: { fontSize: 11, fontWeight: '800' },
+  eta: { position: 'absolute', top: 140, left: spacing.lg, right: spacing.lg, backgroundColor: colors.bgElevated, borderWidth: 1.5, borderRadius: 10, padding: spacing.md },
   etaTxt: { color: colors.textPrimary, fontSize: 13, fontWeight: '600', textAlign: 'center' },
   aviso: { position: 'absolute', bottom: spacing.lg, left: spacing.lg, right: spacing.lg, backgroundColor: colors.bgElevated, borderWidth: 1, borderColor: colors.border, borderRadius: 10, padding: spacing.md },
   avisoTxt: { color: colors.textSecondary, fontSize: 13, textAlign: 'center' },

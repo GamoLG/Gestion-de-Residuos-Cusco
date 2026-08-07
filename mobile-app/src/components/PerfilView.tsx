@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Feather, MaterialCommunityIcons, FontAwesome } from '@expo/vector-icons';
 import { useAuth } from '../lib/auth';
+import { ConfirmModal } from './ConfirmModal';
 import { colors, radius, spacing, acentoDe, WHATSAPP_SOPORTE } from '../lib/theme';
 
 const ROL_LABEL: Record<string, string> = {
@@ -14,12 +16,12 @@ export function PerfilView() {
   const { usuario, logout } = useAuth();
   const router = useRouter();
   const acento = acentoDe(usuario?.rol);
+  const [confirmSalir, setConfirmSalir] = useState(false);
 
-  const salir = () => {
-    Alert.alert('Cerrar sesión', '¿Seguro que quieres salir?', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Salir', style: 'destructive', onPress: async () => { await logout(); router.replace('/login'); } },
-    ]);
+  const confirmarSalida = async () => {
+    setConfirmSalir(false);
+    await logout();
+    router.replace('/login');
   };
 
   const abrirWhatsApp = () => {
@@ -85,12 +87,24 @@ export function PerfilView() {
         <Text style={s.tipTxt}>Tus datos están protegidos según la Ley N.° 29733 de Protección de Datos Personales.</Text>
       </View>
 
-      <TouchableOpacity style={s.salir} onPress={salir}>
+      <TouchableOpacity style={s.salir} onPress={() => setConfirmSalir(true)}>
         <Feather name="log-out" size={18} color={colors.danger} />
         <Text style={s.salirTxt}>Cerrar sesión</Text>
       </TouchableOpacity>
 
       <Text style={s.pie}>Residuos Cusco · v2.0.0 (Entrega 3)</Text>
+
+      <ConfirmModal
+        visible={confirmSalir}
+        icono="log-out"
+        colorIcono={colors.danger}
+        titulo="Cerrar sesión"
+        mensaje="¿Seguro que quieres salir? Tendrás que volver a iniciar sesión para usar la app."
+        textoConfirmar="Salir"
+        colorConfirmar={colors.danger}
+        onConfirmar={confirmarSalida}
+        onCancelar={() => setConfirmSalir(false)}
+      />
     </ScrollView>
   );
 }
