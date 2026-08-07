@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Feather, MaterialCommunityIcons, FontAwesome } from '@expo/vector-icons';
 import { useAuth } from '../lib/auth';
 import { ConfirmModal } from './ConfirmModal';
+import { registrarNotificaciones } from '../lib/notificaciones';
 import { colors, radius, spacing, acentoDe, WHATSAPP_SOPORTE } from '../lib/theme';
 
 const ROL_LABEL: Record<string, string> = {
@@ -17,6 +18,24 @@ export function PerfilView() {
   const router = useRouter();
   const acento = acentoDe(usuario?.rol);
   const [confirmSalir, setConfirmSalir] = useState(false);
+  const [probando, setProbando] = useState(false);
+
+  const probarNotificaciones = async () => {
+    setProbando(true);
+    try {
+      const diag = await registrarNotificaciones();
+      if (diag.ok) {
+        Alert.alert('✅ Notificaciones activas', 'Tu celular quedó registrado para recibir avisos push reales, con sonido, aunque cierres la app.');
+      } else {
+        Alert.alert(
+          '⚠️ No se pudo activar (' + diag.paso + ')',
+          diag.detalle + '\n\nMuéstrale este mensaje a soporte si no sabes cómo resolverlo.'
+        );
+      }
+    } finally {
+      setProbando(false);
+    }
+  };
 
   const confirmarSalida = async () => {
     setConfirmSalir(false);
@@ -70,6 +89,14 @@ export function PerfilView() {
         <View style={{ flex: 1 }}>
           <Text style={s.soporteT}>WhatsApp de la municipalidad</Text>
           <Text style={s.soporteS}>Quejas, soporte y consultas del servicio</Text>
+        </View>
+        <Feather name="chevron-right" size={18} color={colors.textMuted} />
+      </TouchableOpacity>
+      <TouchableOpacity style={s.soporte} onPress={probarNotificaciones} disabled={probando}>
+        {probando ? <ActivityIndicator color={acento} /> : <Feather name="bell" size={20} color={acento} />}
+        <View style={{ flex: 1 }}>
+          <Text style={s.soporteT}>Probar notificaciones push</Text>
+          <Text style={s.soporteS}>Verifica si tu celular puede recibir avisos con sonido</Text>
         </View>
         <Feather name="chevron-right" size={18} color={colors.textMuted} />
       </TouchableOpacity>
