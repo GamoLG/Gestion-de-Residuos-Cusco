@@ -22,6 +22,7 @@ export default function Register() {
   const [zonaMsg, setZonaMsg] = useState('');
   const [dniCargando, setDniCargando] = useState(false);
   const [cargando, setCargando] = useState(false);
+  const [ubicando, setUbicando] = useState(false);
   const up = (k: string, v: string) => setF((p) => ({ ...p, [k]: v }));
 
   const buscarDni = async () => {
@@ -50,8 +51,18 @@ export default function Register() {
   const usarGps = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') return Alert.alert('Permiso', 'Activa el permiso de ubicación');
-    const loc = await Location.getCurrentPositionAsync({});
-    detectarZona(loc.coords.latitude, loc.coords.longitude);
+    setUbicando(true);
+    try {
+      // Precisión alta explícita: sin esto, algunos celulares devuelven una
+      // posición aproximada por red/wifi que suele caer en el centro de la
+      // ciudad, asignando siempre "Centro Histórico" sin importar dónde estés.
+      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      await detectarZona(loc.coords.latitude, loc.coords.longitude);
+    } catch {
+      Alert.alert('Error', 'No se pudo obtener tu ubicación GPS. Intenta de nuevo o marca tu ubicación en el mapa.');
+    } finally {
+      setUbicando(false);
+    }
   };
 
   const crear = async () => {
@@ -109,9 +120,9 @@ export default function Register() {
           {campo('telefono', 'TELÉFONO (opcional)', 'phone', { placeholder: '984111222', keyboardType: 'phone-pad' })}
           {campo('direccion', 'DIRECCIÓN', 'map-pin', { placeholder: 'Av. Sol 123, Cusco', autoCapitalize: 'words' })}
 
-          <TouchableOpacity style={s.btnSec} onPress={usarGps}>
-            <Feather name="navigation" size={14} color={colors.primary} />
-            <Text style={s.btnSecTxt}>Usar mi ubicación (GPS)</Text>
+          <TouchableOpacity style={s.btnSec} onPress={usarGps} disabled={ubicando}>
+            {ubicando ? <ActivityIndicator size="small" color={colors.primary} /> : <Feather name="navigation" size={14} color={colors.primary} />}
+            <Text style={s.btnSecTxt}>{ubicando ? 'Obteniendo ubicación…' : 'Usar mi ubicación (GPS)'}</Text>
           </TouchableOpacity>
 
           {zona && <Text style={[s.zonaTxt, { color: zona.color }]}>✓ Tu zona: {zona.nombre}</Text>}

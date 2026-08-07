@@ -34,7 +34,7 @@ export default function Incidencias() {
   const ubicar = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') return Alert.alert('Permiso', 'Activa la ubicación');
-    const loc = await Location.getCurrentPositionAsync({});
+    const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
     setCoords({ lat: loc.coords.latitude, lng: loc.coords.longitude });
   };
 
